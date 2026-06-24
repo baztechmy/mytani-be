@@ -1,0 +1,38 @@
+{
+  "name": "mytani-be",
+  "version": "1.0.0",
+  "main": "app.js",
+  "type": "commonjs",
+  "scripts": {
+    "b": "tsc",
+    "r": "node dist/app.js",
+    "br": "tsc && node dist/app.js",
+    "tbr": "tsc && node dist/test/test.js",
+    "sinitbr": "tsc && node dist/scripts/env.script.js && node dist/scripts/db.script.js",
+    "senvbr": "tsc && node dist/scripts/env.script.js",
+    "sdbbr": "tsc && node dist/scripts/db.script.js",
+    "sbackupbr": "tsc && node dist/scripts/backup.script.js"
+  },
+  "keywords": [],
+  "author": "harrypoggers25",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/pg": "^8.16.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@harrypoggers25/app-express": "^1.0.1",
+    "@harrypoggers25/color-utils": "^1.0.1",
+    "@harrypoggers25/db-postgresql": "^1.2.4",
+    "@harrypoggers25/env": "^1.0.0",
+    "@harrypoggers25/route": "^1.0.4",
+    "bcrypt-ts": "^8.0.1",
+    "cookie-parser": "^1.4.7",
+    "jsonwebtoken": "^9.0.3",
+    "mqtt": "^5.15.1"
+  }
+}
