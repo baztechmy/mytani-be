@@ -4,6 +4,8 @@ import Route from "@harrypoggers25/route";
 // CONFIGS
 import { db, User, UserSecret } from "../configs/db.config";
 import { hashSync } from "bcrypt-ts";
+
+// SERVICES
 import { createUserActivityLog } from "../services/user-activity-log.service";
 
 export const createUserHandler = Route.asyncHandler(async (req, res) => {
