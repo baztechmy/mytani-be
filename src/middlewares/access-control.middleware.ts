@@ -1,5 +1,8 @@
-import Route from "@harrypoggers25/route";
+// MIDDLEWARE
 import { Payload } from "./authorization.middleware";
+
+// MODULE
+import Route from "@harrypoggers25/route";
 
 namespace AccessControl {
     export const roles = (roles: Array<string>) => {

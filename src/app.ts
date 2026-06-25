@@ -1,17 +1,12 @@
-// MODULES
-import App from "@harrypoggers25/app-express";
-// import ch from "@harrypoggers25/color-utils";
-import cookieParser from 'cookie-parser';
+// APP
+import router from "./routers";
 
 // CONFIGS
 import env from "./configs/env.config";
 
-// HELPERS
-// import { parseJson } from "./helpers/mqtt.helper";
-
-// APP
-// import { mqttClient } from "./configs/mqtt.config";
-import router from "./routers";
+// MODULES
+import App from "@harrypoggers25/app-express";
+import cookieParser from 'cookie-parser';
 
 App.listen({
     port: env.PORT,

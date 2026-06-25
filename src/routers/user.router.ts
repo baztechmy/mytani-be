@@ -1,6 +1,3 @@
-// MIDDLEWARES
-import { Router } from 'express';
-
 // CONTROLLERS
 import {
     createUserHandler,
@@ -13,6 +10,9 @@ import {
 // MIDDLEWARES
 import Authorize from '../middlewares/authorization.middleware';
 import AccessControl from '../middlewares/access-control.middleware';
+
+// MODULES
+import { Router } from 'express';
 
 const userRouter = Router();
 userRouter.use(Authorize.accesstoken);

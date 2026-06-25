@@ -1,9 +1,9 @@
-// MODULES
-import Route from "@harrypoggers25/route";
-
 // CONFIGS
 import { db, User, UserSecret } from "../configs/db.config";
 import { hashSync } from "bcrypt-ts";
+
+// MODULES
+import Route from "@harrypoggers25/route";
 
 // SERVICES
 import { createUserActivityLog } from "../services/user-activity-log.service";

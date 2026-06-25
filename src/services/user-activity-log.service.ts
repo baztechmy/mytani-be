@@ -1,8 +1,8 @@
-// MODULES
-import { Pool } from "@harrypoggers25/db-postgresql";
-
 // CONFIGS
 import { UserActivityLog } from "../configs/db.config";
+
+// MODULES
+import { Pool } from "@harrypoggers25/db-postgresql";
 
 type Body = Partial<ReturnType<typeof UserActivityLog.getEmptyModel>>;
 

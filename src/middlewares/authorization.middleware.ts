@@ -1,12 +1,12 @@
+// CONFIGS
+import { UserSecret } from '../configs/db.config';
+import env from '../configs/env.config';
+
 // MODULES
 import Route from '@harrypoggers25/route';
 
 // HELPERS
 import Token from '../helpers/token.helper';
-
-// CONFIGS
-import { UserSecret } from '../configs/db.config';
-import env from '../configs/env.config';
 
 export type Payload = { user_id: number, user_email: string, user_name: string, user_role: string, login_id: number };
 

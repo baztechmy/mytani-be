@@ -1,15 +1,17 @@
-// MODULES
-import Route from "@harrypoggers25/route";
-import Token from "../helpers/token.helper";
-import { compareSync } from "bcrypt-ts";
-import ms from 'ms';
-
 // CONFIGS
 import { User, UserSecret } from "../configs/db.config";
 import env from "../configs/env.config";
 
 // MIDDLEWARES
 import { Payload } from "../middlewares/authorization.middleware";
+
+// MODULES
+import Route from "@harrypoggers25/route";
+import { compareSync } from "bcrypt-ts";
+import ms from 'ms';
+
+// HELPERS
+import Token from "../helpers/token.helper";
 
 export const loginUserHandler = Route.asyncHandler(async (req, res) => {
     const { user_email, user_password } = req.body;
