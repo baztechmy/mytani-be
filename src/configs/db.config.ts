@@ -27,3 +27,12 @@ export const UserSecret = db.define('user_secrets', {
     user_id: { type: DataTypes.INTEGER, allowNull: false, unique: true }
 });
 UserSecret.setForeignKey(User, 'user_id');
+
+export const UserActivityLog = db.define('user_activity_logs', {
+    ual_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+    ual_type: { type: DataTypes.VARCHAR(255), allowNull: false },
+    ual_activity: { type: DataTypes.TEXT, allowNull: false },
+    ual_date: { type: DataTypes.TIMESTAMP, allowNull: false },
+    user_id: { type: DataTypes.INTEGER, allowNull: false },
+});
+UserActivityLog.setForeignKey(User, 'user_id');
