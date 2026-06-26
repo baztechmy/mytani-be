@@ -36,3 +36,47 @@ export const UserActivityLog = db.define('user_activity_logs', {
     user_id: { type: DataTypes.INTEGER, allowNull: false },
 });
 UserActivityLog.setForeignKey(User, 'user_id');
+
+export const Device = db.define('devices', {
+    d_id: { type: DataTypes.VARCHAR(255), allowNull: false, primaryKey: true },
+    d_name: { type: DataTypes.VARCHAR(255), allowNull: false },
+    can_monitor: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    can_control: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    user_id: { type: DataTypes.INTEGER, allowNull: false },
+});
+Device.setForeignKey(User, 'user_id');
+
+export const DeviceState = db.define('device_states', {
+    alive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
+    d_id: { type: DataTypes.VARCHAR(255), allowNull: false, unique: true },
+});
+DeviceState.setForeignKey(Device, 'd_id');
+
+export const DeviceParams = db.define('device_params', {
+    dp_id: { type: DataTypes.VARCHAR(255), allowNull: false, primaryKey: true },
+    dp_name: { type: DataTypes.VARCHAR(255), allowNull: false },
+    dp_target: { type: DataTypes.NUMERIC(30, 3), allowNull: true },
+    created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
+    updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
+    d_id: { type: DataTypes.VARCHAR(255), allowNull: false },
+});
+DeviceParams.setForeignKey(Device, 'd_id');
+
+export const DeviceRelay = db.define('device_relays', {
+    dr_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+    relay_names: { type: DataTypes.TEXT, allowNull: false },
+    relay_vals: { type: DataTypes.TEXT, allowNull: false },
+    count: { type: DataTypes.INTEGER, allowNull: false },
+    d_id: { type: DataTypes.VARCHAR(255), allowNull: false },
+});
+DeviceRelay.setForeignKey(Device, 'd_id');
+
+export const deviceDatas = ['A', 'B', 'C', 'D'].map(letter => {
+    return db.define(`device_data_${letter}`, {
+        dd_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+        raw_data: { type: DataTypes.TEXT, allowNull: false, defaultValue: '{}' },
+        dd_date: { type: DataTypes.TIMESTAMP, allowNull: false },
+    });
+});
+
