@@ -15,7 +15,7 @@ export const User = db.define('users', {
     user_name: { type: DataTypes.VARCHAR(255), allowNull: false },
     user_email: { type: DataTypes.VARCHAR(255), allowNull: false, unique: true },
     user_phone: { type: DataTypes.VARCHAR(255), allowNull: true },
-    user_role: { type: DataTypes.VARCHAR(255), allowNull: false, check: "user_role IN ('user', 'admin')" },
+    user_role: { type: DataTypes.VARCHAR(255), allowNull: false, check: "user_role IN ('user', 'admin', 'superadmin')" },
     created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     created_by: { type: DataTypes.INTEGER, allowNull: true },

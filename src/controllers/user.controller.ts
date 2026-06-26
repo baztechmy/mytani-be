@@ -29,13 +29,6 @@ export const createUserHandler = Route.asyncHandler(async (req, res) => {
     }
     user_password = hashSync(user_password, 10);
 
-    const roles = ['admin', 'user'];
-    if (!user_role || typeof user_role !== 'string' || !roles.some(role => user_role.toLowerCase() === role)) {
-        res.status(400);
-        throw new Error('Failed to create new user. Invalid user role');
-    }
-    user_role = user_role.toLowerCase();
-
     const transaction = await db.transaction({ rollbackOnError: true });
     const user = await User.create(
         { user_name, user_email, user_phone, user_role, created_at, updated_at, created_by },
