@@ -14,7 +14,8 @@ import { createUserActivityLog } from "../services/user-activity-log.service";
 export const createUserHandler = Route.asyncHandler(async (req, res) => {
     const date = new Date();
 
-    const { user_name, user_email, user_phone, created_by } = req.body;
+    const payload = getPayload(req);
+    const { user_name, user_email, user_phone, created_by = payload.user_id } = req.body;
     const [created_at, updated_at] = [date, date];
     let { user_role, user_password } = req.body;
 
