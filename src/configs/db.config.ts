@@ -38,7 +38,8 @@ export const UserActivityLog = db.define('user_activity_logs', {
 UserActivityLog.setForeignKey(User, 'user_id');
 
 export const Device = db.define('devices', {
-    d_id: { type: DataTypes.VARCHAR(255), allowNull: false, primaryKey: true },
+    d_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+    d_did: { type: DataTypes.VARCHAR(255), allowNull: false, unique: true },
     d_name: { type: DataTypes.VARCHAR(255), allowNull: false },
     can_monitor: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     can_control: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
@@ -49,7 +50,7 @@ Device.setForeignKey(User, 'user_id');
 export const DeviceState = db.define('device_states', {
     alive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
-    d_id: { type: DataTypes.VARCHAR(255), allowNull: false, unique: true },
+    d_id: { type: DataTypes.INTEGER, allowNull: false, unique: true },
 });
 DeviceState.setForeignKey(Device, 'd_id');
 
@@ -59,7 +60,7 @@ export const DeviceParams = db.define('device_params', {
     dp_target: { type: DataTypes.NUMERIC(30, 3), allowNull: true },
     created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
-    d_id: { type: DataTypes.VARCHAR(255), allowNull: false },
+    d_id: { type: DataTypes.SERIAL, allowNull: false },
 });
 DeviceParams.setForeignKey(Device, 'd_id');
 
@@ -68,7 +69,7 @@ export const DeviceRelay = db.define('device_relays', {
     relay_names: { type: DataTypes.TEXT, allowNull: false },
     relay_vals: { type: DataTypes.TEXT, allowNull: false },
     count: { type: DataTypes.INTEGER, allowNull: false },
-    d_id: { type: DataTypes.VARCHAR(255), allowNull: false },
+    d_id: { type: DataTypes.SERIAL, allowNull: false, unique: true },
 });
 DeviceRelay.setForeignKey(Device, 'd_id');
 
