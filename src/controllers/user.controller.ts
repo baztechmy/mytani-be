@@ -6,7 +6,7 @@ import { hashSync } from "bcrypt-ts";
 import Route from "@harrypoggers25/route";
 
 // MIDDLEWARES
-import { Payload } from "../middlewares/authorization.middleware";
+import { getPayload } from "../middlewares/authorization.middleware";
 
 // SERVICES
 import { createUserActivityLog } from "../services/user-activity-log.service";
@@ -92,7 +92,7 @@ export const updateUserHandler = Route.asyncHandler(async (req, res) => {
     const user = await User.updateByPk(user_id, { user_name, user_email, user_phone, user_role, updated_at }, { transaction });
     if (!user) throw new Error(`Failed to update user [${user_id}]`);
 
-    const payload = req.user as Payload;
+    const payload = getPayload(req);
     const ual = await createUserActivityLog(
         { ual_type: 'USER_UPDATE', ual_activity: `Updated user account with user_id = '${user_id}'`, ual_date: updated_at, user_id: payload.user_id },
         transaction
@@ -110,7 +110,7 @@ export const deleteUserHandler = Route.asyncHandler(async (req, res) => {
     const user = await User.deleteByPk(user_id, { transaction });
     if (!user) throw new Error(`Failed to delete user [${user_id}]`);
 
-    const payload = req.user as Payload;
+    const payload = getPayload(req);
     const ual = await createUserActivityLog(
         { ual_type: 'USER_DELETE', ual_activity: `Deleted user account with user_id = '${user_id}'`, user_id: payload.user_id },
         transaction
