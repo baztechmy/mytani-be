@@ -1,5 +1,5 @@
 // MIDDLEWARE
-import { Payload } from "./authorization.middleware";
+import { getPayload } from "./authorization.middleware";
 
 // MODULE
 import Route from "@harrypoggers25/route";
@@ -7,7 +7,7 @@ import Route from "@harrypoggers25/route";
 namespace AccessControl {
     export const roles = (roles: Array<string>) => {
         return Route.asyncHandler(async (req, res, next) => {
-            const user = req.user as Payload;
+            const user = getPayload(req);
             if (!user) {
                 res.status(403);
                 throw new Error('Forbidden access. No session available');
@@ -24,7 +24,7 @@ namespace AccessControl {
 
     export const rolesOrAccountOwner = (roles: Array<string>) => {
         return Route.asyncHandler(async (req, res, next) => {
-            const user = req.user as Payload;
+            const user = getPayload(req);
             const user_id = +req.params.user_id;
 
             if (!user) {

@@ -54,6 +54,15 @@ export const DeviceState = db.define('device_states', {
 });
 DeviceState.setForeignKey(Device, 'd_id');
 
+export const DeviceRelay = db.define('device_relays', {
+    dr_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+    relay_names: { type: DataTypes.TEXT, allowNull: false },
+    relay_vals: { type: DataTypes.TEXT, allowNull: false },
+    count: { type: DataTypes.INTEGER, allowNull: false },
+    d_id: { type: DataTypes.SERIAL, allowNull: false, unique: true },
+});
+DeviceRelay.setForeignKey(Device, 'd_id');
+
 export const DeviceParams = db.define('device_params', {
     dp_id: { type: DataTypes.VARCHAR(255), allowNull: false, primaryKey: true },
     dp_name: { type: DataTypes.VARCHAR(255), allowNull: false },
@@ -63,15 +72,6 @@ export const DeviceParams = db.define('device_params', {
     d_id: { type: DataTypes.SERIAL, allowNull: false },
 });
 DeviceParams.setForeignKey(Device, 'd_id');
-
-export const DeviceRelay = db.define('device_relays', {
-    dr_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
-    relay_names: { type: DataTypes.TEXT, allowNull: false },
-    relay_vals: { type: DataTypes.TEXT, allowNull: false },
-    count: { type: DataTypes.INTEGER, allowNull: false },
-    d_id: { type: DataTypes.SERIAL, allowNull: false, unique: true },
-});
-DeviceRelay.setForeignKey(Device, 'd_id');
 
 export const deviceDatas = ['A', 'B', 'C', 'D'].map(letter => {
     return db.define(`device_data_${letter}`, {

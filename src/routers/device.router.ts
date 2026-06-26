@@ -1,7 +1,5 @@
 // CONTROLLERS
 import { createDeviceHandler, deleteDeviceHandler, findAllDeviceHandler, findDeviceHandler, updateDeviceHandler } from '../controllers/device.controller';
-import {
-} from '../controllers/user.controller';
 
 // MIDDLEWARES
 import Authorize from '../middlewares/authorization.middleware';
