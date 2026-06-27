@@ -46,19 +46,20 @@ namespace AccessControl {
     export const rolesOrDeviceOwner = (roles: Array<string>) => {
         return Route.asyncHandler(async (req, res, next) => {
             const user = getPayload(req);
-            const user_id = +req.params.user_id;
+            const d_id = +req.params.d_id;
 
             if (!user) {
                 res.status(403);
                 throw new Error('Forbidden access. No session available');
             }
+            const { user_id, user_role } = user;
 
-            const device = await Device.find({ where: { user_id } });
+            const device = await Device.find({ where: { d_id, user_id } });
             if (!device) {
                 res.status(403);
                 throw new Error(`Forbidden access. Unable to find device ${stringifyJson({ user_id })}`);
             }
-            if (!roles.includes(user.user_role) && !device.length) {
+            if (!roles.includes(user_role) && !device.length) {
                 res.status(403);
                 throw new Error('Forbidden access. Admin role or Account owner access required');
             }
