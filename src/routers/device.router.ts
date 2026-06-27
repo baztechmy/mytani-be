@@ -2,6 +2,7 @@
 import { createDeviceHandler, deleteDeviceHandler, findAllDeviceHandler, findDeviceHandler, updateDeviceHandler } from '../controllers/device.controller';
 
 // MIDDLEWARES
+import AccessControl from '../middlewares/access-control.middleware';
 import Authorize from '../middlewares/authorization.middleware';
 
 // MODULES
@@ -11,11 +12,11 @@ const deviceRouter = Router();
 deviceRouter.use(Authorize.accesstoken);
 
 deviceRouter.route('/')
-    .post(Authorize.accesstoken, createDeviceHandler)
-    .get(Authorize.accesstoken, findAllDeviceHandler);
+    .post(createDeviceHandler)
+    .get(AccessControl.roles(['superadmin', 'admin']), findAllDeviceHandler);
 deviceRouter.route('/:d_id')
-    .get(Authorize.accesstoken, findDeviceHandler)
-    .patch(Authorize.accesstoken, updateDeviceHandler)
-    .delete(Authorize.accesstoken, deleteDeviceHandler);
+    .get(AccessControl.rolesOrOwner(['superadmin', 'admin']), findDeviceHandler)
+    .patch(AccessControl.rolesOrOwner(['superadmin', 'admin']), updateDeviceHandler)
+    .delete(AccessControl.rolesOrOwner(['superadmin', 'admin']), deleteDeviceHandler);
 
 export default deviceRouter;
