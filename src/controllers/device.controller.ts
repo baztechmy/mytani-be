@@ -47,9 +47,9 @@ export const updateDeviceHandler = Route.asyncHandler(async (req, res) => {
     const { d_did, d_name, can_monitor, can_control } = req.body;
     const transaction = await db.transaction({ rollbackOnError: true });
 
-    const device = await Device.update(
+    const device = await Device.updateByPk(d_id,
         { d_did, d_name, can_monitor, can_control },
-        { where: { d_id }, transaction }
+        { transaction }
     );
     if (!device) throw new Error('Failed to update device');
 
