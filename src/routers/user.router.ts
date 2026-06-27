@@ -21,8 +21,8 @@ userRouter.route('/')
     .post(AccessControl.roles(['superadmin', 'admin']), createUserHandler)
     .get(AccessControl.roles(['superadmin', 'admin']), findAllUserHandler);
 userRouter.route('/:user_id')
-    .get(AccessControl.rolesOrOwner(['superadmin', 'admin']), findUserHandler)
-    .patch(AccessControl.rolesOrOwner(['superadmin', 'admin']), updateUserHandler)
+    .get(AccessControl.rolesOrAccountOwner(['superadmin', 'admin']), findUserHandler)
+    .patch(AccessControl.rolesOrAccountOwner(['superadmin', 'admin']), updateUserHandler)
     .delete(AccessControl.roles(['superadmin', 'admin']), deleteUserHandler);
 
 export default userRouter;

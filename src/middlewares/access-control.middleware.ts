@@ -22,7 +22,7 @@ namespace AccessControl {
         })
     };
 
-    export const rolesOrOwner = (roles: Array<string>) => {
+    export const rolesOrAccountOwner = (roles: Array<string>) => {
         return Route.asyncHandler(async (req, res, next) => {
             const user = getPayload(req);
             const user_id = +req.params.user_id;
