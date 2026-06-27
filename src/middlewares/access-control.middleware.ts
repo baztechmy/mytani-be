@@ -1,4 +1,6 @@
 // MIDDLEWARE
+import { Device } from "../configs/db.config";
+import { stringifyJson } from "../helpers/json.helper";
 import { getPayload } from "./authorization.middleware";
 
 // MODULE
@@ -32,7 +34,7 @@ namespace AccessControl {
                 throw new Error('Forbidden access. No session available');
             }
 
-            if (!roles.some(role => role === user.user_role) && user.user_id !== user_id) {
+            if (!roles.includes(user.user_role) && user.user_id !== user_id) {
                 res.status(403);
                 throw new Error('Forbidden access. Admin role or Account owner access required');
             }
@@ -40,6 +42,30 @@ namespace AccessControl {
             next();
         })
     };
+
+    export const rolesOrDeviceOwner = (roles: Array<string>) => {
+        return Route.asyncHandler(async (req, res, next) => {
+            const user = getPayload(req);
+            const user_id = +req.params.user_id;
+
+            if (!user) {
+                res.status(403);
+                throw new Error('Forbidden access. No session available');
+            }
+
+            const device = await Device.find({ where: { user_id } });
+            if (!device) {
+                res.status(403);
+                throw new Error(`Forbidden access. Unable to find device ${stringifyJson({ user_id })}`);
+            }
+            if (!roles.includes(user.user_role) && !device.length) {
+                res.status(403);
+                throw new Error('Forbidden access. Admin role or Account owner access required');
+            }
+
+            next();
+        });
+    }
 }
 
 export default AccessControl;
