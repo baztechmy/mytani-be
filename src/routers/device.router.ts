@@ -15,8 +15,8 @@ deviceRouter.route('/')
     .post(createDeviceHandler)
     .get(AccessControl.roles(['superadmin', 'admin']), findAllDeviceHandler);
 deviceRouter.route('/:d_id')
-    .get(AccessControl.rolesOrOwner(['superadmin', 'admin']), findDeviceHandler)
-    .patch(AccessControl.rolesOrOwner(['superadmin', 'admin']), updateDeviceHandler)
-    .delete(AccessControl.rolesOrOwner(['superadmin', 'admin']), deleteDeviceHandler);
+    .get(AccessControl.rolesOrDeviceOwner(['superadmin', 'admin']), findDeviceHandler)
+    .patch(AccessControl.rolesOrDeviceOwner(['superadmin', 'admin']), updateDeviceHandler)
+    .delete(AccessControl.rolesOrDeviceOwner(['superadmin', 'admin']), deleteDeviceHandler);
 
 export default deviceRouter;
