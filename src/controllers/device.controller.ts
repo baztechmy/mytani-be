@@ -1,6 +1,9 @@
 // CONFIGS
 import { db, Device } from "../configs/db.config";
 
+// HELPERS
+import { stringifyJson } from "../helpers/json.helper";
+
 // MODULES
 import Route from "@harrypoggers25/route";
 
@@ -38,6 +41,14 @@ export const findDeviceHandler = Route.asyncHandler(async (req, res) => {
     const d_id = +req.params.d_id;
     const device = await Device.findByPk(+d_id);
     if (!device) throw new Error(`Failed to find device [${d_id}]`);
+
+    res.status(200).json(device);
+});
+
+export const findAllUserDeviceHandler = Route.asyncHandler(async (req, res) => {
+    const user_id = +req.params.user_id;
+    const device = await Device.find({ where: { user_id } });
+    if (!device) throw new Error(`Failed to find devices ${stringifyJson({ user_id })}`);
 
     res.status(200).json(device);
 });
