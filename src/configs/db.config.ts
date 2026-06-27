@@ -55,7 +55,6 @@ export const DeviceState = db.define('device_states', {
 DeviceState.setForeignKey(Device, 'd_id');
 
 export const DeviceRelay = db.define('device_relays', {
-    dr_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
     relay_names: { type: DataTypes.TEXT, allowNull: false },
     relay_vals: { type: DataTypes.TEXT, allowNull: false },
     count: { type: DataTypes.INTEGER, allowNull: false },
