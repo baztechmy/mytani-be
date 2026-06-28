@@ -57,7 +57,7 @@ namespace AccessControl {
             const device = await Device.find({ where: { d_id, user_id } });
             if (!device) {
                 res.status(403);
-                throw new Error(`Forbidden access. Unable to find device ${stringifyJson({ user_id })}`);
+                throw new Error(`Forbidden access. Unable to find device ${stringifyJson({ d_id, user_id })}`);
             }
             if (!roles.includes(user_role) && !device.length) {
                 res.status(403);
@@ -89,7 +89,7 @@ namespace AccessControl {
             const device = await Device.find({ where: { d_id, user_id } });
             if (!device) {
                 res.status(403);
-                throw new Error(`Forbidden access. Unable to find device ${stringifyJson({ user_id })}`);
+                throw new Error(`Forbidden access. Unable to find device ${stringifyJson({ d_id, user_id })}`);
             }
             if (!roles.includes(user_role) && !device.length) {
                 res.status(403);
