@@ -64,19 +64,23 @@ DeviceRelay.setForeignKey(Device, 'd_id');
 
 export const DeviceParam = db.define('device_params', {
     dp_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+    dp_did: { type: DataTypes.VARCHAR(255), allowNull: false, unique: true },
     dp_name: { type: DataTypes.VARCHAR(255), allowNull: false },
     dp_target: { type: DataTypes.NUMERIC(30, 3), allowNull: true },
     created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     d_id: { type: DataTypes.SERIAL, allowNull: false },
-});
+}, { extraScript: { in: 'UNIQUE (dp_did, d_id)', } });
 DeviceParam.setForeignKey(Device, 'd_id');
 
-export const deviceDatas = ['A', 'B', 'C', 'D'].map(letter => {
-    return db.define(`device_data_${letter}`, {
-        dd_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
-        raw_data: { type: DataTypes.TEXT, allowNull: false, defaultValue: '{}' },
-        dd_date: { type: DataTypes.TIMESTAMP, allowNull: false },
-    });
-});
-
+// export const DeviceDatas: Array<ReturnType<typeof db.define>> = [];
+// export function createDeviceDataModel(d_id: string) {
+//     const DeviceData = db.define(`device_data_${d_id}`, {
+//         dd_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+//         raw_data: { type: DataTypes.TEXT, allowNull: false, defaultValue: '{}' },
+//         dd_date: { type: DataTypes.TIMESTAMP, allowNull: false },
+//     });
+//     DeviceDatas.push(DeviceData);
+//     return DeviceData;
+// }
+//
