@@ -45,10 +45,10 @@ export const findDeviceHandler = Route.asyncHandler(async (req, res) => {
     res.status(200).json(device);
 });
 
-export const findAllUserDeviceHandler = Route.asyncHandler(async (req, res) => {
+export const findAllDeviceByUserHandler = Route.asyncHandler(async (req, res) => {
     const user_id = +req.params.user_id;
     const device = await Device.find({ where: { user_id } });
-    if (!device) throw new Error(`Failed to find devices ${stringifyJson({ user_id })}`);
+    if (!device) throw new Error(`Failed to find devices by user ${stringifyJson({ user_id })}`);
 
     res.status(200).json(device);
 });

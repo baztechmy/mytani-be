@@ -35,7 +35,7 @@ export const createDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
     relay_vals = stringifyJson(relay_vals.map(val => val > 0 ? 1 : 0));
 
     const deviceRelay = await DeviceRelay.create({ relay_names, relay_vals, count, d_id }, { transaction });
-    if (!deviceRelay) throw new Error('Failed to create device relay');
+    if (!deviceRelay) throw new Error('Failed to create new device relay');
 
     const ual = await createUserActivityLog(
         { ual_type: 'DEVICE_RELAY_CREATE', ual_activity: `Created new device relay with d_id = '${deviceRelay.d_id}'`, user_id: getPayload(req).user_id },
@@ -70,7 +70,7 @@ export const findAllUserDeviceRelayHandler = Route.asyncHandler(async (req, res)
         'ON dr.d_id = d.d_id ' +
         'WHERE dr.user_id = $1;'
     const response = await db.pool.query(query, { values: [user_id] });
-    if (!Pool.isSuccess(response)) throw new Error(`Failed to find all user device relay ${stringifyJson({ user_id })}`);
+    if (!Pool.isSuccess(response)) throw new Error(`Failed to find all device relay by user ${stringifyJson({ user_id })}`);
 
     res.status(200).json(response.rows[0]);
 });

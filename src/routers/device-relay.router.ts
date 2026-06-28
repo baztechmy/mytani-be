@@ -1,8 +1,15 @@
 // CONTROLLERS
-import { createDeviceRelayHandler, deleteDeviceRelayHandler, findAllDeviceRelayHandler, findDeviceRelayHandler, updateDeviceRelayHandler } from '../controllers/device-relay.controller';
-import AccessControl from '../middlewares/access-control.middleware';
+import {
+    createDeviceRelayHandler,
+    deleteDeviceRelayHandler,
+    findAllDeviceRelayHandler,
+    findAllDeviceRelayByUserHandler,
+    findDeviceRelayHandler,
+    updateDeviceRelayHandler
+} from '../controllers/device-relay.controller';
 
 // MIDDLEWARES
+import AccessControl from '../middlewares/access-control.middleware';
 import Authorize from '../middlewares/authorization.middleware';
 
 // MODULES
@@ -19,6 +26,6 @@ deviceRelayRouter.route('/:d_id')
     .patch(AccessControl.rolesOrDeviceOwner(['superadmin', 'admin']), updateDeviceRelayHandler)
     .delete(AccessControl.rolesOrDeviceOwner(['superadmin', 'admin']), deleteDeviceRelayHandler);
 deviceRelayRouter.route('/users/:user_id')
-    .get(AccessControl.rolesOrAccountOwner(['superadmin', 'admin']), findAllDeviceRelayHandler);
+    .get(AccessControl.rolesOrAccountOwner(['superadmin', 'admin']), findAllDeviceRelayByUserHandler);
 
 export default deviceRelayRouter;

@@ -1,5 +1,12 @@
 // CONTROLLERS
-import { createDeviceHandler, deleteDeviceHandler, findAllDeviceHandler, findAllUserDeviceHandler, findDeviceHandler, updateDeviceHandler } from '../controllers/device.controller';
+import {
+    createDeviceHandler,
+    deleteDeviceHandler,
+    findAllDeviceByUserHandler,
+    findAllDeviceHandler,
+    findDeviceHandler,
+    updateDeviceHandler
+} from '../controllers/device.controller';
 
 // MIDDLEWARES
 import AccessControl from '../middlewares/access-control.middleware';
@@ -19,6 +26,6 @@ deviceRouter.route('/:d_id')
     .patch(AccessControl.rolesOrDeviceOwner(['superadmin', 'admin']), updateDeviceHandler)
     .delete(AccessControl.rolesOrDeviceOwner(['superadmin', 'admin']), deleteDeviceHandler);
 deviceRouter.route('/users/:user_id')
-    .get(AccessControl.rolesOrAccountOwner(['superadmin', 'admin']), findAllUserDeviceHandler)
+    .get(AccessControl.rolesOrAccountOwner(['superadmin', 'admin']), findAllDeviceByUserHandler)
 
 export default deviceRouter;
