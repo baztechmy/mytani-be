@@ -75,13 +75,13 @@ export const updateUserHandler = Route.asyncHandler(async (req, res) => {
 
     if (user_password) {
         const userSecret = await UserSecret.update({ user_password: hashSync(user_password, 10) }, { where: { user_id }, transaction });
-        if (!userSecret) throw new Error(`Failed to update user password [${user_id}]`);
+        if (!userSecret) throw new Error(`Failed to update user [${user_id}].Invalid user password`);
     }
 
     if (user_role && (typeof user_role !== 'string' || !['admin', 'user'].some(role => user_role.toLowerCase() === role))) {
         await transaction.rollback()
         res.status(400);
-        throw new Error('Failed to create new user. Invalid user role');
+        throw new Error(`Failed to update user [${user_id}]. Invalid user role`);
     }
 
     const user = await User.updateByPk(user_id, { user_name, user_email, user_phone, user_role, updated_at }, { transaction });
@@ -92,7 +92,7 @@ export const updateUserHandler = Route.asyncHandler(async (req, res) => {
         { ual_type: 'USER_UPDATE', ual_activity: `Updated user account with user_id = '${user_id}'`, ual_date: updated_at, user_id: payload.user_id },
         transaction
     );
-    if (!ual) throw new Error('Failed to update user. Unable to create new user activity log');
+    if (!ual) throw new Error(`Failed to update user [${user_id}]. Unable to create new user activity log`);
 
     await transaction.commit();
     res.status(200).json(user);
@@ -110,7 +110,7 @@ export const deleteUserHandler = Route.asyncHandler(async (req, res) => {
         { ual_type: 'USER_DELETE', ual_activity: `Deleted user account with user_id = '${user_id}'`, user_id: payload.user_id },
         transaction
     );
-    if (!ual) throw new Error('Failed to delete user. Unable to create new user activity log');
+    if (!ual) throw new Error(`Failed to delete user [${user_id}]. Unable to create new user activity log`);
 
     await transaction.commit();
     res.status(200).json(user);
