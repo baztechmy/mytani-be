@@ -45,7 +45,7 @@ export const loginUserHandler = Route.asyncHandler(async (req, res) => {
 
     res.cookie('access_token', tokens.access.token, { httpOnly: true, secure: true, sameSite: 'strict' });
 
-    res.status(200).json(tokens);
+    res.status(200).json({ ...tokens, payload: { user_id, user_email, user_name, user_role } });
 });
 
 export const logoutUserHandler = Route.asyncHandler(async (req, res) => {
