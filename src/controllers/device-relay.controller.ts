@@ -20,10 +20,6 @@ export const createDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
     let { relay_names, relay_vals } = req.body;
     const transaction = await db.transaction({ rollbackOnError: true });
 
-    const device = await Device.findByPk(d_id);
-    if (!device) throw new Error(`Failed to create new device relay. Unable to find device [${d_id}]`);
-    if (!device.can_control) throw new Error(`Failed to create new device relay. can_control is set to false for device [${d_id}]`);
-
     if (typeof count !== 'number') throw new Error(`Failed to create new device relay. count must be a number`);
 
     if (!relay_names || !isArrayObj(relay_names, 'string')) throw new Error(`Failed to create new device relay. relay_names must be an array of strings`);
@@ -36,6 +32,9 @@ export const createDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
 
     const deviceRelay = await DeviceRelay.create({ relay_names, relay_vals, count, d_id }, { transaction });
     if (!deviceRelay) throw new Error('Failed to create new device relay');
+
+    const device = await Device.updateByPk(d_id, { can_control: true }, { transaction });
+    if (!device) throw new Error(`Failed to create new device relay. Unable to update device [${d_id}]`);
 
     const ual = await createUserActivityLog(
         { ual_type: 'DEVICE_RELAY_CREATE', ual_activity: `Created new device relay with d_id = '${deviceRelay.d_id}'`, user_id: getPayload(req).user_id },
@@ -119,6 +118,9 @@ export const deleteDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
 
     const deviceRelay = await DeviceRelay.delete({ where: { d_id }, transaction });
     if (!deviceRelay || !deviceRelay.length) throw new Error(`Failed to delete device relay ${stringifyJson({ d_id })}`);
+
+    const device = await Device.updateByPk(d_id, { can_control: false }, { transaction });
+    if (!device) throw new Error(`Failed to delete device relay ${stringifyJson({ d_id })}. Unable to update device`);
 
     const ual = await createUserActivityLog(
         { ual_type: 'DEVICE_RELAY_DELETE', ual_activity: `Deleted device with d_id = '${d_id}'`, user_id: getPayload(req).user_id },

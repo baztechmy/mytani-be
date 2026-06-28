@@ -14,10 +14,10 @@ import { getPayload } from "../middlewares/authorization.middleware";
 import { createUserActivityLog } from "../services/user-activity-log.service";
 
 export const createDeviceHandler = Route.asyncHandler(async (req, res) => {
-    const { d_id, d_did, d_name, can_monitor, can_control, user_id = getPayload(req).user_id } = req.body;
+    const { d_id, d_did, d_name, user_id = getPayload(req).user_id } = req.body;
     const transaction = await db.transaction({ rollbackOnError: true });
 
-    const device = await Device.create({ d_id, d_did, d_name, can_monitor, can_control, user_id }, { transaction });
+    const device = await Device.create({ d_id, d_did, d_name, user_id }, { transaction });
     if (!device) throw new Error('Failed to create device');
 
     const ual = await createUserActivityLog(
@@ -55,11 +55,11 @@ export const findAllDeviceByUserHandler = Route.asyncHandler(async (req, res) =>
 
 export const updateDeviceHandler = Route.asyncHandler(async (req, res) => {
     const d_id = +req.params.d_id;
-    const { d_did, d_name, can_monitor, can_control } = req.body;
+    const { d_did, d_name } = req.body;
     const transaction = await db.transaction({ rollbackOnError: true });
 
     const device = await Device.updateByPk(d_id,
-        { d_did, d_name, can_monitor, can_control },
+        { d_did, d_name },
         { transaction }
     );
     if (!device) throw new Error('Failed to update device');
