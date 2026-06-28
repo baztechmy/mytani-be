@@ -62,17 +62,17 @@ export const findDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
     res.status(200).json(deviceRelay[0]);
 });
 
-export const findAllUserDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
+export const findAllDeviceRelayByUserHandler = Route.asyncHandler(async (req, res) => {
     const user_id = +req.params.user_id;
     const query =
         `SELECT * FROM ${DeviceRelay.tableName} dr ` +
-        `INNER JOIN ${Device.tableName} d ON ` +
+        `INNER JOIN ${Device.tableName} d ` +
         'ON dr.d_id = d.d_id ' +
-        'WHERE dr.user_id = $1;'
+        'WHERE d.user_id = $1;'
     const response = await db.pool.query(query, { values: [user_id] });
     if (!Pool.isSuccess(response)) throw new Error(`Failed to find all device relay by user ${stringifyJson({ user_id })}`);
 
-    res.status(200).json(response.rows[0]);
+    res.status(200).json(response.rows);
 });
 
 export const updateDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
