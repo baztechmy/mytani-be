@@ -78,7 +78,7 @@ export const deleteDeviceHandler = Route.asyncHandler(async (req, res) => {
     const d_id = +req.params.d_id;
     const transaction = await db.transaction({ rollbackOnError: true });
 
-    const device = await Device.delete({ where: { d_id }, transaction });
+    const device = await Device.deleteByPk(d_id, { transaction });
     if (!device) throw new Error('Failed to delete device');
 
     const ual = await createUserActivityLog(
