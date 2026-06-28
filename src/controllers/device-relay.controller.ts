@@ -65,7 +65,7 @@ export const findDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
 export const findAllDeviceRelayByUserHandler = Route.asyncHandler(async (req, res) => {
     const user_id = +req.params.user_id;
     const query =
-        `SELECT * FROM ${DeviceRelay.tableName} dr ` +
+        `SELECT relay_names, relay_vals, count, d.d_id FROM ${DeviceRelay.tableName} dr ` +
         `INNER JOIN ${Device.tableName} d ` +
         'ON dr.d_id = d.d_id ' +
         'WHERE d.user_id = $1;'
