@@ -24,7 +24,6 @@ export const createDeviceParamHandler = Route.asyncHandler(async (req, res) => {
 
     const device = await Device.findByPk(d_id);
     if (!device) throw new Error(`Failed to create new device param. Unable to find device [${d_id}]`);
-    if (!device.can_monitor) throw new Error(`Failed to create new device param. can_monitor is set to false for device [${d_id}]`);
 
     const deviceParam = await DeviceParam.create({ dp_did, dp_name, dp_target, created_at, updated_at, d_id }, { transaction });
     if (!deviceParam) throw new Error('Failed to create new device param');
