@@ -101,7 +101,7 @@ export const updateDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
         { relay_names, relay_vals, count },
         { where: { d_id }, transaction }
     );
-    if (!deviceRelay) throw new Error(`Failed to update device relay ${stringifyJson({ d_id })}`);
+    if (!deviceRelay || !deviceRelay.length) throw new Error(`Failed to update device relay ${stringifyJson({ d_id })}`);
 
     const ual = await createUserActivityLog(
         { ual_type: 'DEVICE_RELAY_UPDATE', ual_activity: `Updated device relay with d_id = '${d_id}'`, user_id: getPayload(req).user_id },
@@ -110,7 +110,7 @@ export const updateDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
     if (!ual) throw new Error(`Failed to update device relay ${stringifyJson({ d_id })}. Unable to create new user activity log`);
 
     await transaction.commit();
-    res.status(200).json(deviceRelay);
+    res.status(200).json(deviceRelay[0]);
 });
 
 export const deleteDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
@@ -118,7 +118,7 @@ export const deleteDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
     const transaction = await db.transaction({ rollbackOnError: true });
 
     const deviceRelay = await DeviceRelay.delete({ where: { d_id }, transaction });
-    if (!deviceRelay) throw new Error(`Failed to delete device relay ${stringifyJson({ d_id })}`);
+    if (!deviceRelay || !deviceRelay.length) throw new Error(`Failed to delete device relay ${stringifyJson({ d_id })}`);
 
     const ual = await createUserActivityLog(
         { ual_type: 'DEVICE_RELAY_DELETE', ual_activity: `Deleted device with d_id = '${d_id}'`, user_id: getPayload(req).user_id },
