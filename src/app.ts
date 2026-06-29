@@ -3,11 +3,11 @@ import router from "./routers";
 
 // CONFIGS
 import env from "./configs/env.config";
+import { db } from "./configs/db.config";
 
 // MODULES
 import App from "@harrypoggers25/app-express";
 import cookieParser from 'cookie-parser';
-import { db } from "./configs/db.config";
 
 App.listen({
     port: env.PORT,
