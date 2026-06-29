@@ -73,14 +73,15 @@ export const DeviceParam = db.define('device_params', {
 }, { extraScript: { in: 'UNIQUE (dp_did, d_id)', } });
 DeviceParam.setForeignKey(Device, 'd_id');
 
-// export const DeviceDatas: Array<ReturnType<typeof db.define>> = [];
-// export function createDeviceDataModel(d_id: string) {
-//     const DeviceData = db.define(`device_data_${d_id}`, {
-//         dd_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
-//         raw_data: { type: DataTypes.TEXT, allowNull: false, defaultValue: '{}' },
-//         dd_date: { type: DataTypes.TIMESTAMP, allowNull: false },
-//     });
-//     DeviceDatas.push(DeviceData);
-//     return DeviceData;
-// }
-//
+export const DeviceDatas: Record<number, ReturnType<typeof db.define>> = {};
+export function createDeviceData(d_id: number) {
+    const DeviceData = db.define(`device_data_${d_id}`, {
+        dd_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+        raw_data: { type: DataTypes.TEXT, allowNull: false, defaultValue: '{}' },
+        dd_date: { type: DataTypes.TIMESTAMP, allowNull: false },
+    });
+    DeviceDatas[d_id] = DeviceData;
+
+    return DeviceData;
+}
+
