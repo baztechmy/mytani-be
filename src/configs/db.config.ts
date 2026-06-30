@@ -65,9 +65,11 @@ export const Device = db.define('devices', {
     d_name: { type: DataTypes.VARCHAR(255), allowNull: false },
     can_monitor: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     can_control: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    user_id: { type: DataTypes.INTEGER, allowNull: false },
+    comp_id: { type: DataTypes.INTEGER, allowNull: false },
+    site_id: { type: DataTypes.INTEGER, allowNull: false },
 });
-Device.setForeignKey(User, 'user_id');
+Device.setForeignKey(Company, 'comp_id');
+Device.setForeignKey(Site, 'site_id');
 
 export const DeviceState = db.define('device_states', {
     alive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
