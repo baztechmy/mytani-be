@@ -8,7 +8,7 @@ import Route from '@harrypoggers25/route';
 // HELPERS
 import Token from '../helpers/token.helper';
 
-export type Payload = { user_id: number, user_email: string, user_name: string, user_role: string, login_id: number };
+export type Payload = { user_id: number, user_email: string, user_name: string, user_role: string, comp_id: number, login_id: number };
 export function getPayload(req: Route.ERequest) {
     return req.user as Payload;
 }
