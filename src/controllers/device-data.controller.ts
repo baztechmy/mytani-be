@@ -35,17 +35,6 @@ export const createDeviceDataHandler = Route.asyncHandler(async (req, res) => {
     res.status(201).json({ message: `Sucessfully created table '${DeviceData.tableName}'` });
 });
 
-export const findDeviceDataHandler = Route.asyncHandler(async (req, res) => {
-    const d_id = +req.params.d_id;
-
-    const deviceData = await DeviceDatas[d_id].find({});
-    if (!deviceData) throw new Error(`Failed to find device [${d_id}]`);
-
-    deviceData[0].dd_id;
-
-    res.status(200).json(deviceData);
-});
-
 export const deleteDeviceDataHandler = Route.asyncHandler(async (req, res) => {
     const d_id = +req.params.d_id;
     const transaction = await db.transaction({ rollbackOnError: true });

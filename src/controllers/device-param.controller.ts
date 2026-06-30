@@ -25,7 +25,7 @@ export const createDeviceParamHandler = Route.asyncHandler(async (req, res) => {
     if (!device) throw new Error(`Failed to create new device param ${stringifyJson({ d_id })}. Unable to find device`);
 
     const deviceParam = await DeviceParam.create({ dp_did, dp_name, dp_target, created_at, updated_at, d_id }, { transaction });
-    if (!deviceParam) throw new Error('Failed to create new device param');
+    if (!deviceParam) throw new Error(`Failed to create new device param ${stringifyJson({ d_id })}`);
 
     const ual = await createUserActivityLog(
         { ual_type: 'DEVICE_PARAM_CREATE', ual_activity: `Created new device param with dp_id = '${deviceParam.dp_id}'`, user_id: getPayload(req).user_id },
@@ -40,7 +40,7 @@ export const createDeviceParamHandler = Route.asyncHandler(async (req, res) => {
 export const findDeviceParamHandler = Route.asyncHandler(async (req, res) => {
     const dp_id = +req.params.dp_id;
     const deviceParam = await DeviceParam.findByPk(dp_id);
-    if (!deviceParam) throw new Error(`Failed to find device param  [${dp_id}]`);
+    if (!deviceParam) throw new Error(`Failed to find device param [${dp_id}]`);
 
     res.status(200).json(deviceParam);
 });
@@ -55,7 +55,7 @@ export const findAllDeviceParamHandler = Route.asyncHandler(async (_, res) => {
 export const findAllDeviceParamByDeviceHandler = Route.asyncHandler(async (req, res) => {
     const d_id = +req.params.d_id;
     const deviceParams = await DeviceParam.find({ where: { d_id } });
-    if (!deviceParams) throw new Error(`Failed to find device params  ${stringifyJson({ d_id })}`);
+    if (!deviceParams) throw new Error(`Failed to find device params ${stringifyJson({ d_id })}`);
 
     res.status(200).json(deviceParams);
 });
