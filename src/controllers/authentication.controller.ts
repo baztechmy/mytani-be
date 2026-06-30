@@ -24,7 +24,7 @@ export const loginUserHandler = Route.asyncHandler(async (req, res) => {
     if (!users) throw new Error(`Failed to login user [${user_email}]. Unable to find user`);
     if (!users.length) throw new Error(`Failed to login user [${user_email}]. User not found`);
 
-    const { user_id, user_name, user_role } = users[0];
+    const { user_id, user_name, user_role, comp_id } = users[0];
     const userSecrets = await UserSecret.find({ where: { user_id } });
     if (!userSecrets) throw new Error(`Failed to login user [${user_email}]. Failed to find user secret`);
     if (!userSecrets.length) throw new Error(`Failed to login user [${user_email}]. User secret not found`);
@@ -33,7 +33,7 @@ export const loginUserHandler = Route.asyncHandler(async (req, res) => {
     if (!compareSync(user_password, userSecret.user_password)) throw new Error(`Failed to login user [${user_email}]. Password is incorrect`);
 
     const login_id = Date.now();
-    const payload = { user_id, user_email, user_name, user_role, login_id };
+    const payload: Payload = { user_id, user_email, user_name, user_role, comp_id, login_id };
 
     const tokens = {
         access: Token.generate(payload, env.ACCESS_TOKEN_SECRET, env.ACCESS_TOKEN_EXPIRESIN as ms.StringValue),
@@ -45,7 +45,7 @@ export const loginUserHandler = Route.asyncHandler(async (req, res) => {
 
     res.cookie('access_token', tokens.access.token, { httpOnly: true, secure: true, sameSite: 'strict' });
 
-    res.status(200).json({ ...tokens, payload: { user_id, user_email, user_name, user_role } });
+    res.status(200).json({ ...tokens, payload: { user_id, user_email, user_name, user_role, comp_id } });
 });
 
 export const logoutUserHandler = Route.asyncHandler(async (req, res) => {

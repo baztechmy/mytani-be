@@ -13,16 +13,25 @@ export const db = Db.config({
     port: env.DB_PORT
 });
 
+export const Company = db.define('companies', {
+    comp_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+    comp_name: { type: DataTypes.VARCHAR(511), allowNull: false },
+    created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
+    updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
+});
+
 export const User = db.define('users', {
     user_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
     user_name: { type: DataTypes.VARCHAR(255), allowNull: false },
     user_email: { type: DataTypes.VARCHAR(255), allowNull: false, unique: true },
     user_phone: { type: DataTypes.VARCHAR(255), allowNull: true },
     user_role: { type: DataTypes.VARCHAR(255), allowNull: false, check: `user_role IN (${stringifyRoles(['user', 'admin', 'superadmin'])})` },
+    comp_id: { type: DataTypes.INTEGER, allowNull: false },
     created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     created_by: { type: DataTypes.INTEGER, allowNull: true },
 });
+User.setForeignKey(Company, 'comp_id');
 
 export const UserSecret = db.define('user_secrets', {
     user_password: { type: DataTypes.VARCHAR(255), allowNull: false },
@@ -39,6 +48,16 @@ export const UserActivityLog = db.define('user_activity_logs', {
     user_id: { type: DataTypes.INTEGER, allowNull: false },
 });
 UserActivityLog.setForeignKey(User, 'user_id');
+
+export const Site = db.define('sites', {
+    site_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+    site_name: { type: DataTypes.VARCHAR(255), allowNull: false },
+    site_location: { type: DataTypes.VARCHAR(1023), allowNull: false },
+    comp_id: { type: DataTypes.INTEGER, allowNull: false },
+    created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
+    updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
+});
+Site.setForeignKey(Company, 'comp_id');
 
 export const Device = db.define('devices', {
     d_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
