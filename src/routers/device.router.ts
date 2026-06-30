@@ -1,11 +1,9 @@
 // CONTROLLERS
 import {
-    createDeviceHandler,
-    deleteDeviceHandler,
-    findAllDeviceByUserHandler,
     findAllDeviceHandler,
     findDeviceHandler,
-    updateDeviceHandler
+    updateDeviceHandler,
+    deleteDeviceHandler,
 } from '../controllers/device.controller';
 
 // MIDDLEWARES
@@ -19,13 +17,10 @@ const deviceRouter = Router();
 deviceRouter.use(Authorize.accesstoken);
 
 deviceRouter.route('/')
-    .post(createDeviceHandler)
-    .get(AccessControl.roles(['admin']), findAllDeviceHandler);
+    .get(AccessControl.roles(), findAllDeviceHandler);
 deviceRouter.route('/:d_id')
-    .get(AccessControl.rolesOrDeviceOwner(['admin']), findDeviceHandler)
-    .patch(AccessControl.rolesOrDeviceOwner(['admin']), updateDeviceHandler)
-    .delete(AccessControl.rolesOrDeviceOwner(['admin']), deleteDeviceHandler);
-deviceRouter.route('/users/:user_id')
-    .get(AccessControl.rolesOrAccountOwner(['admin']), findAllDeviceByUserHandler)
+    .get(AccessControl.deviceOwner(['admin', 'user']), findDeviceHandler)
+    .patch(AccessControl.deviceOwner(['admin']), updateDeviceHandler)
+    .delete(AccessControl.deviceOwner(['admin']), deleteDeviceHandler);
 
 export default deviceRouter;
