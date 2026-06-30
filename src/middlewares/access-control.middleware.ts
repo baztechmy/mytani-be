@@ -1,5 +1,5 @@
 // MIDDLEWARE
-import { Device, DeviceParam } from "../configs/db.config";
+import { Device, DeviceParam, User } from "../configs/db.config";
 import { stringifyJson } from "../helpers/json.helper";
 import { getPayload } from "./authorization.middleware";
 
@@ -10,10 +10,10 @@ export type Roles = 'superadmin' | 'admin' | 'user';
 export function stringifyRoles(roles: Array<Roles>): string {
     return roles.map(role => `'${role}'`).join(', ')
 }
-const isSuper = (role: string) => role === 'superadmin';
+const isSuper = (role: Roles) => role === 'superadmin';
 
 namespace AccessControl {
-    export const roles = (roles: Array<Roles>) => {
+    export const roles = (roles: Array<Roles> = []) => {
         return Route.asyncHandler(async (req, res, next) => {
             const user = getPayload(req);
             if (!user) {
@@ -21,7 +21,8 @@ namespace AccessControl {
                 throw new Error('Forbidden access. No session available');
             }
 
-            if (!isSuper(user.user_role) && !roles.includes(user.user_role as Roles)) {
+            const user_role = user.user_role as Roles;
+            if (!isSuper(user_role) && !roles.includes(user_role)) {
                 res.status(403);
                 throw new Error('Forbidden access. Valid role required');
             }
@@ -31,16 +32,18 @@ namespace AccessControl {
     };
 
     export const rolesOrAccountOwner = (roles: Array<Roles>) => {
+    export const accountOwner = (roles: Array<Roles> = []) => {
         return Route.asyncHandler(async (req, res, next) => {
-            const user = getPayload(req);
+            const payload = getPayload(req);
             const user_id = +req.params.user_id;
 
-            if (!user) {
+            if (!payload) {
                 res.status(403);
                 throw new Error('Forbidden access. No session available');
             }
 
-            if (!isSuper(user.user_role) && !roles.includes(user.user_role as Roles) && user.user_id !== user_id) {
+            const user_role = payload.user_role as Roles;
+            if (!(isSuper(user_role) || roles.includes(user_role) && payload.user_id === user_id)) {
                 res.status(403);
                 throw new Error('Forbidden access. Valid role or Account owner access required');
             }
@@ -49,23 +52,25 @@ namespace AccessControl {
         })
     };
 
-    export const rolesOrDeviceOwner = (roles: Array<string>) => {
+    export const rolesOrDeviceOwner = (roles: Array<Roles>) => {
         return Route.asyncHandler(async (req, res, next) => {
-            const user = getPayload(req);
+            const payload = getPayload(req);
             const d_id = +req.params.d_id;
 
-            if (!user) {
+            if (!payload) {
                 res.status(403);
                 throw new Error('Forbidden access. No session available');
             }
-            const { user_id, user_role } = user;
 
+            const { user_id } = payload;
             const device = await Device.find({ where: { d_id, user_id } });
             if (!device) {
                 res.status(403);
                 throw new Error(`Forbidden access. Unable to find device ${stringifyJson({ d_id, user_id })}`);
             }
-            if (!isSuper(user.user_role) && !roles.includes(user_role) && !device.length) {
+
+            const user_role = payload.user_role as Roles;
+            if (!isSuper(user_role) && !roles.includes(user_role) && !device.length) {
                 res.status(403);
                 throw new Error('Forbidden access. Valid role or Account owner access required');
             }
@@ -74,17 +79,17 @@ namespace AccessControl {
         });
     }
 
-    export const rolesOrDeviceParamOwner = (roles: Array<string>) => {
+    export const rolesOrDeviceParamOwner = (roles: Array<Roles> = []) => {
         return Route.asyncHandler(async (req, res, next) => {
-            const user = getPayload(req);
+            const payload = getPayload(req);
             const dp_id = +req.params.dp_id;
 
-            if (!user) {
+            if (!payload) {
                 res.status(403);
                 throw new Error('Forbidden access. No session available');
             }
-            const { user_id, user_role } = user;
 
+            const { user_id } = payload;
             const deviceParam = await DeviceParam.findByPk(dp_id)
             if (!deviceParam) {
                 res.status(403);
@@ -97,7 +102,9 @@ namespace AccessControl {
                 res.status(403);
                 throw new Error(`Forbidden access. Unable to find device ${stringifyJson({ d_id, user_id })}`);
             }
-            if (!isSuper(user.user_role) && !roles.includes(user_role) && !device.length) {
+
+            const user_role = payload.user_role as Roles;
+            if (!isSuper(user_role) && !roles.includes(user_role) && !device.length) {
                 res.status(403);
                 throw new Error('Forbidden access. Valid role or Account owner access required');
             }
