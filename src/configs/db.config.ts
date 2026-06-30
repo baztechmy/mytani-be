@@ -2,6 +2,9 @@
 import Db, { DataTypes } from '@harrypoggers25/db-postgresql';
 import env from './env.config.js';
 
+// MIDDLEWARES
+import { stringifyRoles } from '../middlewares/access-control.middleware.js';
+
 export const db = Db.config({
     user: env.DB_USER,
     host: env.DB_HOST,
@@ -15,7 +18,7 @@ export const User = db.define('users', {
     user_name: { type: DataTypes.VARCHAR(255), allowNull: false },
     user_email: { type: DataTypes.VARCHAR(255), allowNull: false, unique: true },
     user_phone: { type: DataTypes.VARCHAR(255), allowNull: true },
-    user_role: { type: DataTypes.VARCHAR(255), allowNull: false, check: "user_role IN ('user', 'admin', 'superadmin')" },
+    user_role: { type: DataTypes.VARCHAR(255), allowNull: false, check: `user_role IN (${stringifyRoles(['user', 'admin', 'superadmin'])})` },
     created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     created_by: { type: DataTypes.INTEGER, allowNull: true },
