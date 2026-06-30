@@ -10,6 +10,7 @@ export type Roles = 'superadmin' | 'admin' | 'user';
 export function stringifyRoles(roles: Array<Roles>): string {
     return roles.map(role => `'${role}'`).join(', ')
 }
+const isSuper = (role: string) => role === 'superadmin';
 
 namespace AccessControl {
     export const roles = (roles: Array<Roles>) => {
@@ -20,7 +21,7 @@ namespace AccessControl {
                 throw new Error('Forbidden access. No session available');
             }
 
-            if (!roles.includes(user.user_role as Roles)) {
+            if (!isSuper(user.user_role) && !roles.includes(user.user_role as Roles)) {
                 res.status(403);
                 throw new Error('Forbidden access. Valid role required');
             }
@@ -39,7 +40,7 @@ namespace AccessControl {
                 throw new Error('Forbidden access. No session available');
             }
 
-            if (!roles.includes(user.user_role as Roles) && user.user_id !== user_id) {
+            if (!isSuper(user.user_role) && !roles.includes(user.user_role as Roles) && user.user_id !== user_id) {
                 res.status(403);
                 throw new Error('Forbidden access. Valid role or Account owner access required');
             }
@@ -64,7 +65,7 @@ namespace AccessControl {
                 res.status(403);
                 throw new Error(`Forbidden access. Unable to find device ${stringifyJson({ d_id, user_id })}`);
             }
-            if (!roles.includes(user_role) && !device.length) {
+            if (!isSuper(user.user_role) && !roles.includes(user_role) && !device.length) {
                 res.status(403);
                 throw new Error('Forbidden access. Valid role or Account owner access required');
             }
@@ -96,7 +97,7 @@ namespace AccessControl {
                 res.status(403);
                 throw new Error(`Forbidden access. Unable to find device ${stringifyJson({ d_id, user_id })}`);
             }
-            if (!roles.includes(user_role) && !device.length) {
+            if (!isSuper(user.user_role) && !roles.includes(user_role) && !device.length) {
                 res.status(403);
                 throw new Error('Forbidden access. Valid role or Account owner access required');
             }

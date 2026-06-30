@@ -20,16 +20,16 @@ const deviceParamRouter = Router();
 deviceParamRouter.use(Authorize.accesstoken);
 
 deviceParamRouter.route('/')
-    .get(AccessControl.roles(['superadmin', 'admin']), findAllDeviceParamHandler);
+    .get(AccessControl.roles(['admin']), findAllDeviceParamHandler);
 deviceParamRouter.route('/:d_id')
-    .post(AccessControl.rolesOrDeviceOwner(['superadmin', 'admin']), createDeviceParamHandler);
+    .post(AccessControl.rolesOrDeviceOwner(['admin']), createDeviceParamHandler);
 deviceParamRouter.route('/:dp_id')
-    .get(AccessControl.rolesOrDeviceParamOwner(['superadmin', 'admin']), findDeviceParamHandler)
-    .patch(AccessControl.rolesOrDeviceParamOwner(['superadmin', 'admin']), updateDeviceParamHandler)
-    .delete(AccessControl.rolesOrDeviceParamOwner(['superadmin', 'admin']), deleteDeviceParamHandler);
+    .get(AccessControl.rolesOrDeviceParamOwner(['admin']), findDeviceParamHandler)
+    .patch(AccessControl.rolesOrDeviceParamOwner(['admin']), updateDeviceParamHandler)
+    .delete(AccessControl.rolesOrDeviceParamOwner(['admin']), deleteDeviceParamHandler);
 deviceParamRouter.route('/devices/:d_id')
-    .get(AccessControl.rolesOrDeviceOwner(['superadmin', 'admin']), findAllDeviceParamByDeviceHandler)
+    .get(AccessControl.rolesOrDeviceOwner(['admin']), findAllDeviceParamByDeviceHandler)
 deviceParamRouter.route('/users/:user_id')
-    .get(AccessControl.rolesOrAccountOwner(['superadmin', 'admin']), findAllDeviceParamByUserHandler);
+    .get(AccessControl.rolesOrAccountOwner(['admin']), findAllDeviceParamByUserHandler);
 
 export default deviceParamRouter;

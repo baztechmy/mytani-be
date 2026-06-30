@@ -15,7 +15,7 @@ const deviceDataRouter = Router();
 deviceDataRouter.use(Authorize.accesstoken);
 
 deviceDataRouter.route('/:d_id')
-    .post(AccessControl.rolesOrDeviceOwner(['superadmin', 'admin']), createDeviceDataHandler)
-    .delete(AccessControl.rolesOrDeviceOwner(['superadmin', 'admin']), deleteDeviceDataHandler);
+    .post(AccessControl.rolesOrDeviceOwner(['admin']), createDeviceDataHandler)
+    .delete(AccessControl.rolesOrDeviceOwner(['admin']), deleteDeviceDataHandler);
 
 export default deviceDataRouter;

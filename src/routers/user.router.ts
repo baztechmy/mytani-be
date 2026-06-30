@@ -18,11 +18,11 @@ const userRouter = Router();
 userRouter.use(Authorize.accesstoken);
 
 userRouter.route('/')
-    .post(AccessControl.roles(['superadmin', 'admin']), createUserHandler)
-    .get(AccessControl.roles(['superadmin', 'admin']), findAllUserHandler);
+    .post(AccessControl.roles(['admin']), createUserHandler)
+    .get(AccessControl.roles(['admin']), findAllUserHandler);
 userRouter.route('/:user_id')
-    .get(AccessControl.rolesOrAccountOwner(['superadmin', 'admin']), findUserHandler)
-    .patch(AccessControl.rolesOrAccountOwner(['superadmin', 'admin']), updateUserHandler)
-    .delete(AccessControl.roles(['superadmin', 'admin']), deleteUserHandler);
+    .get(AccessControl.rolesOrAccountOwner(['admin']), findUserHandler)
+    .patch(AccessControl.rolesOrAccountOwner(['admin']), updateUserHandler)
+    .delete(AccessControl.roles(['admin']), deleteUserHandler);
 
 export default userRouter;
