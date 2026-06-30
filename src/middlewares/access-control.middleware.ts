@@ -6,8 +6,13 @@ import { getPayload } from "./authorization.middleware";
 // MODULE
 import Route from "@harrypoggers25/route";
 
+export type Roles = 'superadmin' | 'admin' | 'user';
+export function stringifyRoles(roles: Array<Roles>): string {
+    return roles.map(role => `'${role}'`).join(', ')
+}
+
 namespace AccessControl {
-    export const roles = (roles: Array<string>) => {
+    export const roles = (roles: Array<Roles>) => {
         return Route.asyncHandler(async (req, res, next) => {
             const user = getPayload(req);
             if (!user) {
@@ -15,16 +20,16 @@ namespace AccessControl {
                 throw new Error('Forbidden access. No session available');
             }
 
-            if (!roles.some(role => role === user.user_role)) {
+            if (!roles.includes(user.user_role as Roles)) {
                 res.status(403);
-                throw new Error('Forbidden access. Admin role required');
+                throw new Error('Forbidden access. Valid role required');
             }
 
             next();
         })
     };
 
-    export const rolesOrAccountOwner = (roles: Array<string>) => {
+    export const rolesOrAccountOwner = (roles: Array<Roles>) => {
         return Route.asyncHandler(async (req, res, next) => {
             const user = getPayload(req);
             const user_id = +req.params.user_id;
@@ -34,9 +39,9 @@ namespace AccessControl {
                 throw new Error('Forbidden access. No session available');
             }
 
-            if (!roles.includes(user.user_role) && user.user_id !== user_id) {
+            if (!roles.includes(user.user_role as Roles) && user.user_id !== user_id) {
                 res.status(403);
-                throw new Error('Forbidden access. Admin role or Account owner access required');
+                throw new Error('Forbidden access. Valid role or Account owner access required');
             }
 
             next();
@@ -61,7 +66,7 @@ namespace AccessControl {
             }
             if (!roles.includes(user_role) && !device.length) {
                 res.status(403);
-                throw new Error('Forbidden access. Admin role or Account owner access required');
+                throw new Error('Forbidden access. Valid role or Account owner access required');
             }
 
             next();
@@ -93,7 +98,7 @@ namespace AccessControl {
             }
             if (!roles.includes(user_role) && !device.length) {
                 res.status(403);
-                throw new Error('Forbidden access. Admin role or Account owner access required');
+                throw new Error('Forbidden access. Valid role or Account owner access required');
             }
 
             next();
