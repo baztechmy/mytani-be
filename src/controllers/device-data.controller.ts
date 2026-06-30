@@ -17,22 +17,22 @@ export const createDeviceDataHandler = Route.asyncHandler(async (req, res) => {
     const d_id = +req.params.d_id;
     const transaction = await db.transaction({ rollbackOnError: true });
 
-    if (DeviceDatas[d_id]) throw new Error(`Failed to create device data instance. Device [${d_id}] already has an existing device data instance`);
+    if (DeviceDatas[d_id]) throw new Error(`Failed to create device data instance ${stringifyJson({ d_id })}. Device already has an existing device data instance`);
 
     const DeviceData = createDeviceData(d_id);
     await DeviceData.sync({ alter: true, transaction });
 
     const device = await Device.updateByPk(d_id, { can_monitor: true }, { transaction });
-    if (!device) throw new Error(`Failed to create device data instance. Unable to update device [${d_id}]`);
+    if (!device) throw new Error(`Failed to create device data instance ${stringifyJson({ d_id })}. Unable to update device`);
 
     const ual = await createUserActivityLog(
         { ual_type: 'DEVICE_CREATE', ual_activity: `Created new device data instance with d_id = '${device.d_id}'`, user_id: getPayload(req).user_id },
         transaction
     );
-    if (!ual) throw new Error('Failed to device data instance. Unable to create new user activity log');
+    if (!ual) throw new Error(`Failed to device data instance ${stringifyJson({ d_id })}. Unable to create new user activity log`);
 
     await transaction.commit();
-    res.status(201).json({ message: `Sucessfully created table ${DeviceData.tableName}` });
+    res.status(201).json({ message: `Sucessfully created table '${DeviceData.tableName}'` });
 });
 
 export const findDeviceDataHandler = Route.asyncHandler(async (req, res) => {

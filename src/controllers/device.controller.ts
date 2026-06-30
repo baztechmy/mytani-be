@@ -56,19 +56,20 @@ export const findAllDeviceByUserHandler = Route.asyncHandler(async (req, res) =>
 export const updateDeviceHandler = Route.asyncHandler(async (req, res) => {
     const d_id = +req.params.d_id;
     const { d_did, d_name } = req.body;
+    const payload = getPayload(req);
     const transaction = await db.transaction({ rollbackOnError: true });
 
     const device = await Device.updateByPk(d_id,
         { d_did, d_name },
         { transaction }
     );
-    if (!device) throw new Error('Failed to update device');
+    if (!device) throw new Error(`Failed to update device [${d_id}]`);
 
     const ual = await createUserActivityLog(
-        { ual_type: 'DEVICE_UPDATE', ual_activity: `Updated device with d_id = '${d_id}'`, user_id: getPayload(req).user_id },
+        { ual_type: 'DEVICE_UPDATE', ual_activity: `Updated device with d_id = '${d_id}'`, user_id: payload.user_id },
         transaction
     );
-    if (!ual) throw new Error('Failed to update device. Unable to create new user activity log');
+    if (!ual) throw new Error(`Failed to update device [${d_id}]. Unable to create new user activity log`);
 
     await transaction.commit();
     res.status(200).json(device);
@@ -76,16 +77,17 @@ export const updateDeviceHandler = Route.asyncHandler(async (req, res) => {
 
 export const deleteDeviceHandler = Route.asyncHandler(async (req, res) => {
     const d_id = +req.params.d_id;
+    const payload = getPayload(req);
     const transaction = await db.transaction({ rollbackOnError: true });
 
     const device = await Device.deleteByPk(d_id, { transaction });
-    if (!device) throw new Error('Failed to delete device');
+    if (!device) throw new Error(`Failed to delete device [${d_id}]`);
 
     const ual = await createUserActivityLog(
-        { ual_type: 'DEVICE_DELETE', ual_activity: `Deleted device with d_id = '${d_id}'`, user_id: getPayload(req).user_id },
+        { ual_type: 'DEVICE_DELETE', ual_activity: `Deleted device with d_id = '${d_id}'`, user_id: payload.user_id },
         transaction
     );
-    if (!ual) throw new Error('Failed to delete device. Unable to create new user activity log');
+    if (!ual) throw new Error(`Failed to delete device [${d_id}]. Unable to create new user activity log`);
 
     await transaction.commit();
     res.status(200).json(device);
