@@ -1,6 +1,5 @@
 // CONTROLLERS
 import {
-    createUserHandler,
     findUserHandler,
     findAllUserHandler,
     updateUserHandler,
@@ -18,11 +17,10 @@ const userRouter = Router();
 userRouter.use(Authorize.accesstoken);
 
 userRouter.route('/')
-    .post(AccessControl.roles(['admin']), createUserHandler)
-    .get(AccessControl.roles(['admin']), findAllUserHandler);
+    .get(AccessControl.roles(), findAllUserHandler);
 userRouter.route('/:user_id')
-    .get(AccessControl.rolesOrAccountOwner(['admin']), findUserHandler)
-    .patch(AccessControl.rolesOrAccountOwner(['admin']), updateUserHandler)
+    .get(AccessControl.accountOwner(['admin']), findUserHandler)
+    .patch(AccessControl.accountOwner(['admin']), updateUserHandler)
     .delete(AccessControl.roles(['admin']), deleteUserHandler);
 
 export default userRouter;
