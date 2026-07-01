@@ -13,6 +13,7 @@ import { getPayload } from "../middlewares/authorization.middleware";
 
 // SERVICES
 import { createUserActivityLog } from "../services/user-activity-log.service";
+import { Roles } from "../middlewares/access-control.middleware";
 
 export const createUserByCompanyHandler = Route.asyncHandler(async (req, res) => {
     const date = new Date();
@@ -21,7 +22,7 @@ export const createUserByCompanyHandler = Route.asyncHandler(async (req, res) =>
     const payload = getPayload(req);
     const { user_name, user_email, user_phone, created_by = payload.user_id } = req.body;
     const [created_at, updated_at] = [date, date];
-    let { user_role, user_password } = req.body;
+    let { user_password } = req.body;
 
     if (!user_email) {
         res.status(400);
@@ -35,6 +36,7 @@ export const createUserByCompanyHandler = Route.asyncHandler(async (req, res) =>
     user_password = hashSync(user_password, 10);
 
     const transaction = await db.transaction({ rollbackOnError: true });
+    const user_role: Roles = 'user';
     const user = await User.create(
         { user_name, user_email, user_phone, user_role, comp_id, created_at, updated_at, created_by },
         { transaction }
@@ -89,7 +91,8 @@ export const updateUserHandler = Route.asyncHandler(async (req, res) => {
         if (!userSecret) throw new Error(`Failed to update user [${user_id}].Invalid user password`);
     }
 
-    if (user_role && (typeof user_role !== 'string' || !['admin', 'user'].some(role => user_role.toLowerCase() === role))) {
+    const roles: Array<Roles> = ['admin', 'user'];
+    if (user_role && (typeof user_role !== 'string' || !roles.some(role => user_role.toLowerCase() === role))) {
         await transaction.rollback()
         res.status(400);
         throw new Error(`Failed to update user [${user_id}]. Invalid user role`);

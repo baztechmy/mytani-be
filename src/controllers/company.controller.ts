@@ -6,7 +6,7 @@ import Message from "../helpers/message.helper";
 
 // MODULES
 import Route from "@harrypoggers25/route";
-import { compareSync, hashSync } from "bcrypt-ts";
+import { hashSync } from "bcrypt-ts";
 
 // MIDDLEWARES
 import { Roles } from "../middlewares/access-control.middleware";
