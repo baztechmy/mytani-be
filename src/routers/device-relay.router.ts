@@ -21,11 +21,11 @@ deviceRelayRouter.use(Authorize.accesstoken);
 deviceRelayRouter.route('/')
     .get(AccessControl.roles(['admin']), findAllDeviceRelayHandler);
 deviceRelayRouter.route('/:d_id')
-    .post(AccessControl.rolesOrDeviceOwner(['admin']), createDeviceRelayHandler)
-    .get(AccessControl.rolesOrDeviceOwner(['admin']), findDeviceRelayHandler)
-    .patch(AccessControl.rolesOrDeviceOwner(['admin']), updateDeviceRelayHandler)
-    .delete(AccessControl.rolesOrDeviceOwner(['admin']), deleteDeviceRelayHandler);
+    .post(AccessControl.deviceOwner(['admin']), createDeviceRelayHandler)
+    .get(AccessControl.deviceOwner(['admin']), findDeviceRelayHandler)
+    .patch(AccessControl.deviceOwner(['admin']), updateDeviceRelayHandler)
+    .delete(AccessControl.deviceOwner(['admin']), deleteDeviceRelayHandler);
 deviceRelayRouter.route('/users/:user_id')
-    .get(AccessControl.rolesOrAccountOwner(['admin']), findAllDeviceRelayByUserHandler);
+    .get(AccessControl.accountOwner(['admin']), findAllDeviceRelayByUserHandler);
 
 export default deviceRelayRouter;
