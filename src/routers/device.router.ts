@@ -5,6 +5,7 @@ import {
     updateDeviceHandler,
     deleteDeviceHandler,
 } from '../controllers/device.controller';
+import { findAllDeviceParamByDeviceHandler } from '../controllers/device-param.controller';
 
 // MIDDLEWARES
 import AccessControl from '../middlewares/access-control.middleware';
@@ -22,5 +23,7 @@ deviceRouter.route('/:d_id')
     .get(AccessControl.deviceOwner(['admin', 'user']), findDeviceHandler)
     .patch(AccessControl.deviceOwner(['admin']), updateDeviceHandler)
     .delete(AccessControl.deviceOwner(['admin']), deleteDeviceHandler);
+deviceRouter.route('/:d_id/device-params')
+    .get(AccessControl.deviceOwner(['admin', 'user']), findAllDeviceParamByDeviceHandler);
 
 export default deviceRouter;

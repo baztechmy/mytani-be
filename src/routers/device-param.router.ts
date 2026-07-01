@@ -1,12 +1,9 @@
 // CONTROLLERS
 import {
-    findAllDeviceParamHandler,
     createDeviceParamHandler,
     findDeviceParamHandler,
     updateDeviceParamHandler,
     deleteDeviceParamHandler,
-    findAllDeviceParamByDeviceHandler,
-    findAllDeviceParamByUserHandler,
 } from '../controllers/device-param.controller';
 
 // MIDDLEWARES
@@ -19,17 +16,11 @@ import { Router } from 'express';
 const deviceParamRouter = Router();
 deviceParamRouter.use(Authorize.accesstoken);
 
-deviceParamRouter.route('/')
-    .get(AccessControl.roles(['admin']), findAllDeviceParamHandler);
 deviceParamRouter.route('/:d_id')
-    .post(AccessControl.rolesOrDeviceOwner(['admin']), createDeviceParamHandler);
+    .post(AccessControl.deviceOwner(['admin']), createDeviceParamHandler);
 deviceParamRouter.route('/:dp_id')
-    .get(AccessControl.rolesOrDeviceParamOwner(['admin']), findDeviceParamHandler)
-    .patch(AccessControl.rolesOrDeviceParamOwner(['admin']), updateDeviceParamHandler)
-    .delete(AccessControl.rolesOrDeviceParamOwner(['admin']), deleteDeviceParamHandler);
-deviceParamRouter.route('/devices/:d_id')
-    .get(AccessControl.rolesOrDeviceOwner(['admin']), findAllDeviceParamByDeviceHandler)
-deviceParamRouter.route('/users/:user_id')
-    .get(AccessControl.rolesOrAccountOwner(['admin']), findAllDeviceParamByUserHandler);
+    .get(AccessControl.deviceParamOwner(['admin', 'user']), findDeviceParamHandler)
+    .patch(AccessControl.deviceParamOwner(['admin']), updateDeviceParamHandler)
+    .delete(AccessControl.deviceParamOwner(['admin']), deleteDeviceParamHandler);
 
 export default deviceParamRouter;
