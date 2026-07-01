@@ -42,8 +42,9 @@ export const createCompanyHandler = Route.asyncHandler(async (req, res) => {
     const company = await Company.create({ comp_name, created_at, updated_at }, { transaction });
     if (!company) throw new Error('Failed to create new company. Internal error');
 
+    const { comp_id } = company;
     const user = await User.create(
-        { user_name, user_email, user_phone, user_role, created_at, updated_at, created_by },
+        { user_name, user_email, user_phone, user_role, comp_id, created_at, updated_at, created_by },
         { transaction }
     );
     if (!user) throw new Error('Failed to create new company. Unable to create admin');
@@ -106,17 +107,7 @@ export const updateCompanyHandler = Route.asyncHandler(async (req, res) => {
 export const deleteCompanyHandler = Route.asyncHandler(async (req, res) => {
     const comp_id = +req.params.comp_id;
     const { user_id } = getPayload(req);
-    const { user_password } = req.body;
     const transaction = await db.transaction({ rollbackOnError: true });
-
-    if (!user_password) {
-        res.status(400);
-        throw new Error(`Failed to delete company [${comp_id}]. Super admin password is required`);
-    }
-
-    const userSecret = await UserSecret.find({ where: { user_id }, transaction });
-    if (!userSecret || !userSecret.length) throw new Error(`Failed to delete company [${comp_id}]. Unable to get super admin password`);
-    if (!compareSync(user_password, userSecret[0].user_password)) throw new Error(`Failed to delete company [${comp_id}]. Invalid super admin password`);
 
     const company = await Company.deleteByPk(comp_id, { transaction });
     if (!company) throw new Error(`Failed to delete company [${comp_id}]`);
