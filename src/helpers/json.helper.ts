@@ -11,6 +11,6 @@ export function stringifyJson(obj: any) {
     return JSON.stringify(obj);
 }
 
-export function isArrayObj(obj: any, type: string): obj is Array<any> {
+export function isArrayObj<T>(obj: any, type: string): obj is Array<T> {
     return (Array.isArray(obj) && obj.some(val => typeof val === type));
 }
