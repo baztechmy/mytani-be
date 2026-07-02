@@ -1,5 +1,5 @@
 // MIDDLEWARE
-import { Device, DeviceParam, Site, User } from "../configs/db.config";
+import { Device, Site, User } from "../configs/db.config";
 import { getPayload } from "./authorization.middleware";
 
 // MODULE

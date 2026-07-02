@@ -7,6 +7,7 @@ import Route from '@harrypoggers25/route';
 
 // HELPERS
 import Token from '../helpers/token.helper';
+import Message from '../helpers/message.helper';
 
 export type Payload = { user_id: number, user_email: string, user_name: string, user_role: string, comp_id: number, login_id: number };
 export function getPayload(req: Route.ERequest) {
@@ -34,8 +35,12 @@ namespace Authorize {
         const aPayload = verifiedAToken.payload as Payload;
         const { user_id } = aPayload;
         const userSecrets = await UserSecret.find({ where: { user_id } });
-        if (!userSecrets) throw new Error(`Failed to authorize user access [${user_id}]. Unable to fetch user refresh token`);
-        if (!userSecrets.length) throw new Error(`Failed to authorize access [${user_id}]. User refresh token not found`);
+        if (!userSecrets) throw new Error(Message.failed(['authorize', 'user access'], {
+            causer: ['find', 'user refresh token']
+        }));
+        if (!userSecrets.length) throw new Error(Message.failed(['authorize', 'user access', user_id], {
+            causer: ['find', 'user refresh token']
+        }));
 
         const refresh_token = userSecrets[0].user_refresh_token;
         if (!refresh_token) {
