@@ -1,11 +1,5 @@
 // CONTROLLERS
-import {
-    createCompanyHandler,
-    findAllCompanyHandler,
-    findCompanyHandler,
-    updateCompanyHandler,
-    deleteCompanyHandler,
-} from '../controllers/company.controller';
+import { CompanyHandler } from '../controllers/company.controller';
 import { UserHandler } from '../controllers/user.controller';
 import { SiteHandler } from '../controllers/site.controller';
 import { DeviceHandler } from '../controllers/device.controller';
@@ -21,12 +15,12 @@ const companyRouter = Router();
 companyRouter.use(Authorize.accesstoken);
 
 companyRouter.route('/')
-    .post(AccessControl.roles(), createCompanyHandler)
-    .get(AccessControl.roles(), findAllCompanyHandler);
+    .post(AccessControl.roles(), CompanyHandler.create)
+    .get(AccessControl.roles(), CompanyHandler.findAll);
 companyRouter.route('/:comp_id')
-    .get(AccessControl.companyAccount(['admin', 'user']), findCompanyHandler)
-    .patch(AccessControl.companyAccount(['admin']), updateCompanyHandler)
-    .delete(AccessControl.companyAccount(['admin']), deleteCompanyHandler);
+    .get(AccessControl.companyAccount(['admin', 'user']), CompanyHandler.find)
+    .patch(AccessControl.companyAccount(['admin']), CompanyHandler.update)
+    .delete(AccessControl.companyAccount(['admin']), CompanyHandler.remove);
 companyRouter.route('/:comp_id/users')
     .post(AccessControl.companyAccount(['admin']), UserHandler.createByCompany)
     .get(AccessControl.companyAccount(['admin']), UserHandler.findAllByCompany);
