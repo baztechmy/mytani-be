@@ -16,13 +16,8 @@ namespace Script {
         const date = new Date();
         const comp_name = 'Super';
         const company = await Company.create({ comp_name, created_at: date, updated_at: date }, { transaction });
-        if (!company) {
-            console.log(ch.red('CREATE USER ERROR:'), Message.failed('create', 'user', {
-                causer: ['create', 'company'],
-                where: comp_name,
-            }));
-            return;
-        }
+        if (!company) return console.log(ch.red('CREATE COMPANY ERROR:'), Message.failed(['create', 'company', { comp_name }]));
+
 
         const comp_id = company.comp_id;
         const users: Array<Partial<ReturnType<typeof User.getEmptyModel>>> = [
@@ -31,23 +26,16 @@ namespace Script {
             { user_name: 'User', user_email: 'user@email.com', user_role: 'user', comp_id, created_by: 1, updated_at: date, created_at: date },
         ];
         for (const body of users) {
+            const { user_email } = body;
             const user = await User.create(body, { transaction });
-            if (!user) {
-                console.log(ch.red('CREATE USER ERROR:'), Message.failed('create', 'user', { where: body.user_email }));
-                return;
-            }
+            if (!user) return console.log(ch.red('CREATE USER ERROR:'), Message.failed(['create', 'user', user_email]));
 
             const { user_id } = user;
             const userSecret = await UserSecret.create({ user_password: hashSync(user.user_email, env.BCRYPT_SALT), user_id }, { transaction });
-            if (!userSecret) {
-                console.log(ch.red('CREATE USER SECRET ERROR:'), Message.failed('create', 'user', {
-                    where: body.user_email,
-                    causer: ['create', 'user secret'],
-                }));
-                return;
-            }
+            if (!userSecret) return console.log(ch.red('CREATE USER SECRET ERROR:'), Message.failed(['create', 'user', user_email], {
+                causer: ['create', 'user secret'],
+            }));
         }
-
     }
 }
 export default Script;
