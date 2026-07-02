@@ -1,5 +1,5 @@
 // CONTROLLERS
-import { loginUserHandler, logoutUserHandler } from '../controllers/authentication.controller';
+import { AuthenticationHandler } from '../controllers/authentication.controller';
 
 // MIDDLEWARES
 import Authorize from '../middlewares/authorization.middleware';
@@ -10,8 +10,8 @@ import { Router } from 'express';
 const authenticationRouter = Router();
 
 authenticationRouter.route('/')
-    .post(loginUserHandler);
+    .post(AuthenticationHandler.loginUser);
 authenticationRouter.route('/logout')
-    .post(Authorize.accesstoken, logoutUserHandler);
+    .post(Authorize.accesstoken, AuthenticationHandler.logoutUser);
 
 export default authenticationRouter;
