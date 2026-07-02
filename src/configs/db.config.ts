@@ -79,10 +79,13 @@ export const DeviceState = db.define('device_states', {
 DeviceState.setForeignKey(Device, 'd_id');
 
 export const DeviceRelay = db.define('device_relays', {
-    relay_names: { type: DataTypes.TEXT, allowNull: false },
-    relay_vals: { type: DataTypes.TEXT, allowNull: false },
-    count: { type: DataTypes.INTEGER, allowNull: false },
-    d_id: { type: DataTypes.SERIAL, allowNull: false, unique: true },
+    dr_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+    dr_name: { type: DataTypes.VARCHAR(255), allowNull: false },
+    current_state: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    previous_state: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
+    updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
+    d_id: { type: DataTypes.INTEGER, allowNull: false },
 });
 DeviceRelay.setForeignKey(Device, 'd_id');
 

@@ -1,5 +1,5 @@
 // CONTROLLERS
-import { createDeviceBySiteHandler } from '../controllers/device.controller';
+import { createDeviceBySiteHandler, findAllDeviceBySiteHandler } from '../controllers/device.controller';
 import {
     findAllSiteHandler,
     findSiteHandler,
@@ -24,6 +24,7 @@ siteRouter.route('/:site_id')
     .patch(AccessControl.siteOwner(['admin']), updateSiteHandler)
     .delete(AccessControl.siteOwner(['admin']), deleteSiteHandler);
 siteRouter.route('/:site_id/devices')
-    .post(AccessControl.siteOwner(['admin']), createDeviceBySiteHandler);
+    .post(AccessControl.siteOwner(['admin']), createDeviceBySiteHandler)
+    .get(AccessControl.siteOwner(['admin', 'user']), findAllDeviceBySiteHandler);
 
 export default siteRouter;

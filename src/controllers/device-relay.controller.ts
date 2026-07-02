@@ -2,7 +2,8 @@
 import { db, Device, DeviceRelay } from "../configs/db.config";
 
 // HELPERS
-import { isArrayObj, stringifyJson } from "../helpers/json.helper";
+import Message from "../helpers/message.helper";
+import { isArrayObj } from "../helpers/json.helper";
 
 // MODULES
 import Route from "@harrypoggers25/route";
@@ -12,122 +13,164 @@ import { getPayload } from "../middlewares/authorization.middleware";
 
 // SERVICES
 import { createUserActivityLog } from "../services/user-activity-log.service";
-import { Pool } from "@harrypoggers25/db-postgresql";
 
-export const createDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
-    const d_id = +req.params.d_id;
-    const { count } = req.body;
-    let { relay_names, relay_vals } = req.body;
-    const transaction = await db.transaction({ rollbackOnError: true });
+export namespace DeviceRelayHandler {
+    export const createByDevice = Route.asyncHandler(async (req, res) => {
+        const date = new Date();
 
-    if (typeof count !== 'number') throw new Error(`Failed to create new device relay. count must be a number`);
+        const d_id = +req.params.d_id;
+        const { dr_names } = req.body;
+        const [created_at, updated_at] = [date, date];
+        const transaction = await db.transaction({ rollbackOnError: true });
 
-    if (!relay_names || !isArrayObj(relay_names, 'string')) throw new Error(`Failed to create new device relay. relay_names must be an array of strings`);
-    if (relay_names.length !== count) throw new Error(`Failed to create new device relay. relay_names count must be ${count}`)
-    relay_names = stringifyJson(relay_names);
+        if (!isArrayObj<string>(dr_names, 'string')) throw new Error(Message.failed(['create', 'new device relays', { d_id }], {
+            subMessage: 'dr_names must be an array of strings'
+        }));
 
-    if (!relay_vals || !isArrayObj(relay_vals, 'number')) throw new Error(`Failed to create new device relay. relay_vals must be an array of numbers`);
-    if (relay_vals.length !== count) throw new Error(`Failed to create new device relay. relay_vals count must be ${count}`)
-    relay_vals = stringifyJson(relay_vals.map(val => val > 0 ? 1 : 0));
+        const deviceRelays: Array<ReturnType<typeof DeviceRelay.getEmptyModel>> = [];
+        for (const dr_name of dr_names) {
+            const deviceRelay = await DeviceRelay.create({ dr_name, created_at, updated_at, d_id }, {
+                transaction
+            });
+            if (!deviceRelay) throw new Error(Message.failed(['create', 'new device relays', { d_id }], {
+                causer: ['add', 'device relay', { dr_name }],
+            }));
+            deviceRelays.push(deviceRelay);
+        }
 
-    const deviceRelay = await DeviceRelay.create({ relay_names, relay_vals, count, d_id }, { transaction });
-    if (!deviceRelay) throw new Error('Failed to create new device relay');
+        const device = await Device.updateByPk(d_id, { can_control: true }, { transaction });
+        if (!device) throw new Error(Message.failed(['create', 'new device relay', { d_id }], {
+            causer: ['update', 'device']
+        }));
 
-    const device = await Device.updateByPk(d_id, { can_control: true }, { transaction });
-    if (!device) throw new Error(`Failed to create new device relay. Unable to update device [${d_id}]`);
+        const ual = await createUserActivityLog({
+            ual_type: 'DEVICE_RELAYS_CREATE',
+            ual_activity: Message.success(['create', 'new device relay', { d_id }]),
+            user_id: getPayload(req).user_id
+        }, transaction);
+        if (!ual) throw new Error(Message.failed(['create', 'device relay', { d_id }], {
+            causer: ['create', 'new user activity log']
+        }));
 
-    const ual = await createUserActivityLog(
-        { ual_type: 'DEVICE_RELAY_CREATE', ual_activity: `Created new device relay with d_id = '${deviceRelay.d_id}'`, user_id: getPayload(req).user_id },
-        transaction
-    );
-    if (!ual) throw new Error('Failed to create device relay. Unable to create new user activity log');
+        await transaction.commit();
+        res.status(201).json(deviceRelays);
+    });
 
-    await transaction.commit();
-    res.status(201).json(deviceRelay);
-});
+    export const add = Route.asyncHandler(async (req, res) => {
+        const date = new Date();
 
-export const findAllDeviceRelayHandler = Route.asyncHandler(async (_, res) => {
-    const deviceRelays = await DeviceRelay.find();
-    if (!deviceRelays) throw new Error('Failed to find all device relays');
+        const d_id = +req.params.d_id;
+        const { dr_name } = req.body;
+        const [created_at, updated_at] = [date, date];
+        const transaction = await db.transaction({ rollbackOnError: true });
 
-    res.status(200).json(deviceRelays);
-});
+        const deviceRelay = await DeviceRelay.create({ dr_name, created_at, updated_at, d_id }, {
+            transaction
+        });
+        if (!deviceRelay) throw new Error(Message.failed(['add', 'new device relay', { d_id }]));
 
-export const findDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
-    const d_id = +req.params.d_id;
-    const deviceRelay = await DeviceRelay.find({ where: { d_id } });
-    if (!deviceRelay || !deviceRelay.length) throw new Error(`Failed to find device relay  ${stringifyJson({ d_id })}`);
+        const device = await Device.updateByPk(d_id, { can_control: true }, { transaction });
+        if (!device) throw new Error(Message.failed(['add', 'new device relay', { d_id }], {
+            causer: ['update', 'device']
+        }));
 
-    res.status(200).json(deviceRelay[0]);
-});
+        const ual = await createUserActivityLog({
+            ual_type: 'DEVICE_RELAY_ADD',
+            ual_activity: Message.success(['add', 'new device relay', { d_id }]),
+            user_id: getPayload(req).user_id
+        }, transaction);
+        if (!ual) throw new Error(Message.failed(['create', 'device relay', { d_id }], {
+            causer: ['create', 'new user activity log']
+        }));
 
-export const findAllDeviceRelayByUserHandler = Route.asyncHandler(async (req, res) => {
-    const user_id = +req.params.user_id;
-    const query =
-        `SELECT relay_names, relay_vals, count, d.d_id FROM ${DeviceRelay.tableName} dr ` +
-        `INNER JOIN ${Device.tableName} d ` +
-        'ON dr.d_id = d.d_id ' +
-        'WHERE d.user_id = $1;'
-    const response = await db.pool.query(query, { values: [user_id] });
-    if (!Pool.isSuccess(response)) throw new Error(`Failed to find all device relay by user ${stringifyJson({ user_id })}`);
+        await transaction.commit();
+        res.status(201).json(deviceRelay);
+    });
 
-    res.status(200).json(response.rows);
-});
+    export const findAllByDevice = Route.asyncHandler(async (req, res) => {
+        const d_id = +req.params.d_id;
+        const deviceRelays = await DeviceRelay.find({ where: { d_id } });
+        if (!deviceRelays) throw new Error(Message.failed(['find', 'all device relays']));
 
-export const updateDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
-    const d_id = +req.params.d_id;
-    let { relay_names, relay_vals } = req.body;
-    const transaction = await db.transaction({ rollbackOnError: true });
+        res.status(200).json(deviceRelays);
+    });
 
-    const oldDeviceRelay = await DeviceRelay.find({ where: { d_id } });
-    if ((!oldDeviceRelay || !oldDeviceRelay.length) && !req.body.count) throw new Error(`Failed to update device relay ${stringifyJson({ d_id })}. Unable to retrieve relay count`);
+    export const find = Route.asyncHandler(async (req, res) => {
+        const dr_id = +req.params.dr_id;
+        const deviceRelay = await DeviceRelay.findByPk(dr_id);
+        if (!deviceRelay) throw new Error(Message.failed(['find', 'device relay', dr_id]));
 
-    const count = req.body.count ?? oldDeviceRelay?.[0].count;
+        res.status(200).json(deviceRelay);
+    })
 
-    if (relay_names) {
-        if (!isArrayObj(relay_names, 'string')) throw new Error(`Failed to update device relay ${stringifyJson({ d_id })}. relay_names must be an array of strings`);
-        if (relay_names.length !== count) throw new Error(`Failed to update device relay ${stringifyJson({ d_id })}. relay_names count must be ${count}`)
-        relay_names = stringifyJson(relay_names);
-    }
+    export const update = Route.asyncHandler(async (req, res) => {
+        const dr_id = +req.params.dr_id;
+        const { dr_name, current_state } = req.body;
+        const transaction = await db.transaction({ rollbackOnError: true });
 
-    if (relay_vals) {
-        if (!isArrayObj(relay_vals, 'number')) throw new Error(`Failed to update device relay ${stringifyJson({ d_id })}. relay_vals must be an array of numbers`);
-        if (relay_vals.length !== count) throw new Error(`Failed to update device relay. relay_vals count must be ${count}`)
-        relay_vals = stringifyJson(relay_vals.map(val => val > 0 ? 1 : 0));
-    }
+        const prevDeviceRelay = await DeviceRelay.findByPk(dr_id, { transaction });
+        if (!prevDeviceRelay) throw new Error(Message.failed(['update', 'device relay', dr_id], {
+            causer: ['find', 'previous device relay']
+        }));
 
-    const deviceRelay = await DeviceRelay.update(
-        { relay_names, relay_vals, count },
-        { where: { d_id }, transaction }
-    );
-    if (!deviceRelay || !deviceRelay.length) throw new Error(`Failed to update device relay ${stringifyJson({ d_id })}`);
+        const previous_state = prevDeviceRelay.current_state;
 
-    const ual = await createUserActivityLog(
-        { ual_type: 'DEVICE_RELAY_UPDATE', ual_activity: `Updated device relay with d_id = '${d_id}'`, user_id: getPayload(req).user_id },
-        transaction
-    );
-    if (!ual) throw new Error(`Failed to update device relay ${stringifyJson({ d_id })}. Unable to create new user activity log`);
+        const deviceRelay = await DeviceRelay.updateByPk(dr_id, { dr_name, current_state, previous_state }, { transaction });
+        if (!deviceRelay) throw new Error(Message.failed(['update', 'device relay', dr_id]));
 
-    await transaction.commit();
-    res.status(200).json(deviceRelay[0]);
-});
+        const ual = await createUserActivityLog({
+            ual_type: 'DEVICE_RELAY_UPDATE',
+            ual_activity: Message.success(['update', 'device relay', dr_id]),
+            user_id: getPayload(req).user_id
+        }, transaction);
+        if (!ual) throw new Error(Message.failed(['update', 'device_relay', dr_id], {
+            causer: ['create', 'new user activity log']
+        }));
 
-export const deleteDeviceRelayHandler = Route.asyncHandler(async (req, res) => {
-    const d_id = +req.params.d_id;
-    const transaction = await db.transaction({ rollbackOnError: true });
+        await transaction.commit();
+        res.status(200).json(deviceRelay);
+    });
 
-    const deviceRelay = await DeviceRelay.delete({ where: { d_id }, transaction });
-    if (!deviceRelay || !deviceRelay.length) throw new Error(`Failed to delete device relay ${stringifyJson({ d_id })}`);
+    export const removeAllByDevice = Route.asyncHandler(async (req, res) => {
+        const d_id = +req.params.d_id;
+        const transaction = await db.transaction({ rollbackOnError: true });
 
-    const device = await Device.updateByPk(d_id, { can_control: false }, { transaction });
-    if (!device) throw new Error(`Failed to delete device relay ${stringifyJson({ d_id })}. Unable to update device`);
+        const deviceRelays = await DeviceRelay.delete({ where: { d_id }, transaction });
+        if (!deviceRelays) throw new Error(Message.failed(['delete', 'all device relays', { d_id }]));
+        if (!deviceRelays.length) throw new Error(Message.failed(['delete', 'device relays', { d_id }], {
+            causer: ['find', 'device relays']
+        }));
 
-    const ual = await createUserActivityLog(
-        { ual_type: 'DEVICE_RELAY_DELETE', ual_activity: `Deleted device with d_id = '${d_id}'`, user_id: getPayload(req).user_id },
-        transaction
-    );
-    if (!ual) throw new Error(`Failed to delete device relay ${stringifyJson({ d_id })}. Unable to create new user activity log`);
+        const ual = await createUserActivityLog({
+            ual_type: 'DEVICE_RELAYS_DELETE',
+            ual_activity: Message.success(['delete', 'all device relays', { d_id }]),
+            user_id: getPayload(req).user_id
+        }, transaction);
+        if (!ual) throw new Error(Message.failed(['delete', 'device relay', { d_id }], {
+            causer: ['create', 'new user activity log']
+        }));
 
-    await transaction.commit();
-    res.status(200).json(deviceRelay);
-});
+        await transaction.commit();
+        res.status(200).json(deviceRelays);
+    });
+
+    export const remove = Route.asyncHandler(async (req, res) => {
+        const dr_id = +req.params.dr_id;
+        const transaction = await db.transaction({ rollbackOnError: true });
+
+        const deviceRelay = await DeviceRelay.deleteByPk(dr_id, { transaction });
+        if (!deviceRelay) throw new Error(Message.failed(['delete', 'device relay', dr_id]));
+
+        const ual = await createUserActivityLog({
+            ual_type: 'DEVICE_RELAY_DELETE',
+            ual_activity: Message.success(['delete', 'device relay', dr_id]),
+            user_id: getPayload(req).user_id
+        }, transaction);
+        if (!ual) throw new Error(Message.failed(['delete', 'device relay', dr_id], {
+            causer: ['create', 'new user activity log']
+        }));
+
+        await transaction.commit();
+        res.status(200).json(deviceRelay);
+    });
+}
