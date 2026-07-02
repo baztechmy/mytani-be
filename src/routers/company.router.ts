@@ -6,9 +6,9 @@ import {
     updateCompanyHandler,
     deleteCompanyHandler,
 } from '../controllers/company.controller';
-import { createUserByCompanyHandler, findAllUserByCompanyHandler } from '../controllers/user.controller';
+import { UserHandler } from '../controllers/user.controller';
 import { createSiteByCompanyHandler, findAllSiteByCompanyHandler } from '../controllers/site.controller';
-import { findAllDeviceByCompanyHandler } from '../controllers/device.controller';
+import { DeviceHandler } from '../controllers/device.controller';
 
 // MIDDLEWARES
 import AccessControl from '../middlewares/access-control.middleware';
@@ -28,12 +28,12 @@ companyRouter.route('/:comp_id')
     .patch(AccessControl.companyAccount(['admin']), updateCompanyHandler)
     .delete(AccessControl.companyAccount(['admin']), deleteCompanyHandler);
 companyRouter.route('/:comp_id/users')
-    .post(AccessControl.companyAccount(['admin']), createUserByCompanyHandler)
-    .get(AccessControl.companyAccount(['admin']), findAllUserByCompanyHandler);
+    .post(AccessControl.companyAccount(['admin']), UserHandler.createByCompany)
+    .get(AccessControl.companyAccount(['admin']), UserHandler.findAllByCompany);
 companyRouter.route('/:comp_id/sites')
     .post(AccessControl.companyAccount(['admin']), createSiteByCompanyHandler)
     .get(AccessControl.companyAccount(['admin', 'user']), findAllSiteByCompanyHandler);
 companyRouter.route('/:comp_id/devices')
-    .get(AccessControl.companyAccount(), findAllDeviceByCompanyHandler);
+    .get(AccessControl.companyAccount(), DeviceHandler.findAllByCompany);
 
 export default companyRouter;

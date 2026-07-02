@@ -1,10 +1,5 @@
 // CONTROLLERS
-import {
-    findUserHandler,
-    findAllUserHandler,
-    updateUserHandler,
-    deleteUserHandler
-} from '../controllers/user.controller';
+import { UserHandler } from '../controllers/user.controller';
 
 // MIDDLEWARES
 import Authorize from '../middlewares/authorization.middleware';
@@ -17,10 +12,10 @@ const userRouter = Router();
 userRouter.use(Authorize.accesstoken);
 
 userRouter.route('/')
-    .get(AccessControl.roles(), findAllUserHandler);
+    .get(AccessControl.roles(), UserHandler.findAll);
 userRouter.route('/:user_id')
-    .get(AccessControl.accountOwner(['admin']), findUserHandler)
-    .patch(AccessControl.accountOwner(['admin']), updateUserHandler)
-    .delete(AccessControl.roles(['admin']), deleteUserHandler);
+    .get(AccessControl.accountOwner(['admin']), UserHandler.find)
+    .patch(AccessControl.accountOwner(['admin']), UserHandler.update)
+    .delete(AccessControl.roles(['admin']), UserHandler.remove);
 
 export default userRouter;
