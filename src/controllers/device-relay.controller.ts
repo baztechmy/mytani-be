@@ -27,6 +27,11 @@ export namespace DeviceRelayHandler {
             subMessage: 'dr_names must be an array of strings'
         }));
 
+        const oldDeviceRelays = await DeviceRelay.delete({ where: { d_id }, transaction });
+        if (!oldDeviceRelays) throw new Error(Message.failed(['create', 'new device relays', { d_id }], {
+            causer: ['delete', 'old device relays', { d_id }],
+        }));
+
         const deviceRelays: Array<ReturnType<typeof DeviceRelay.getEmptyModel>> = [];
         for (const dr_name of dr_names) {
             const deviceRelay = await DeviceRelay.create({ dr_name, created_at, updated_at, d_id }, {
