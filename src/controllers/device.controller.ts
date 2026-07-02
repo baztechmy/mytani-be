@@ -15,7 +15,7 @@ import { createUserActivityLog } from "../services/user-activity-log.service";
 
 export const createDeviceBySiteHandler = Route.asyncHandler(async (req, res) => {
     const site_id = +req.params.site_id;
-    const { d_id, d_did, d_name } = req.body;
+    const { d_did, d_name } = req.body;
     const payload = getPayload(req);
     const transaction = await db.transaction({ rollbackOnError: true });
 
@@ -23,7 +23,7 @@ export const createDeviceBySiteHandler = Route.asyncHandler(async (req, res) => 
     if (!site) throw new Error(`Failed to create device by site ${stringifyJson({ site_id })}`);
 
     const { comp_id } = site;
-    const device = await Device.create({ d_id, d_did, d_name, site_id, comp_id }, { transaction });
+    const device = await Device.create({ d_did, d_name, site_id, comp_id }, { transaction });
     if (!device) throw new Error(`Failed to create device by site ${stringifyJson({ site_id })}`);
 
     const ual = await createUserActivityLog(
