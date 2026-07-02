@@ -7,7 +7,7 @@ import {
     deleteCompanyHandler,
 } from '../controllers/company.controller';
 import { UserHandler } from '../controllers/user.controller';
-import { createSiteByCompanyHandler, findAllSiteByCompanyHandler } from '../controllers/site.controller';
+import { SiteHandler } from '../controllers/site.controller';
 import { DeviceHandler } from '../controllers/device.controller';
 
 // MIDDLEWARES
@@ -31,8 +31,8 @@ companyRouter.route('/:comp_id/users')
     .post(AccessControl.companyAccount(['admin']), UserHandler.createByCompany)
     .get(AccessControl.companyAccount(['admin']), UserHandler.findAllByCompany);
 companyRouter.route('/:comp_id/sites')
-    .post(AccessControl.companyAccount(['admin']), createSiteByCompanyHandler)
-    .get(AccessControl.companyAccount(['admin', 'user']), findAllSiteByCompanyHandler);
+    .post(AccessControl.companyAccount(['admin']), SiteHandler.createByCompany)
+    .get(AccessControl.companyAccount(['admin', 'user']), SiteHandler.findAllByCompany);
 companyRouter.route('/:comp_id/devices')
     .get(AccessControl.companyAccount(), DeviceHandler.findAllByCompany);
 
