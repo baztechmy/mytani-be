@@ -109,32 +109,6 @@ namespace AccessControl {
             next();
         });
     }
-
-    export const deviceParamOwner = (roles: Array<Roles> = []) => {
-        return Route.asyncHandler(async (req, res, next) => {
-            const payload = getPayload(req);
-            const dp_id = +req.params.dp_id;
-
-            res.status(403);
-            if (!payload) throw new Error('Forbidden access. No session available');
-
-            const deviceParam = await DeviceParam.findByPk(dp_id);
-            if (!deviceParam) throw new Error(`Forbidden access. Unable to find device param [${dp_id}]`);
-
-            const { d_id } = deviceParam;
-            const device = await Device.findByPk(d_id);
-            if (!device) throw new Error(`Forbidden access. Unable to find device [${d_id}]`);
-
-            const user_role = payload.user_role as Roles;
-            const isValidCompanyAndRole = roles.includes(user_role) && payload.comp_id === device.comp_id;
-            if (!(isSuper(user_role) || isValidCompanyAndRole)) {
-                throw new Error('Forbidden access. Valid role or Account owner access required');
-            }
-
-            res.status(200);
-            next();
-        });
-    }
 }
 
 export default AccessControl;

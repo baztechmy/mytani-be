@@ -23,7 +23,7 @@ export namespace DeviceRelayHandler {
         const [created_at, updated_at] = [date, date];
         const transaction = await db.transaction({ rollbackOnError: true });
 
-        if (!isArrayObj<string>(dr_names, 'string')) throw new Error(Message.failed(['create', 'new device relays', { d_id }], {
+        if (!isArrayObj<string>(dr_names, name => typeof name === 'string')) throw new Error(Message.failed(['create', 'new device relays', { d_id }], {
             subMessage: 'dr_names must be an array of strings'
         }));
 
@@ -101,26 +101,31 @@ export namespace DeviceRelayHandler {
     });
 
     export const find = Route.asyncHandler(async (req, res) => {
+        const d_id = +req.params.d_id;
         const dr_id = +req.params.dr_id;
-        const deviceRelay = await DeviceRelay.findByPk(dr_id);
+        const deviceRelay = await DeviceRelay.findByPk(dr_id, { where: { d_id } });
         if (!deviceRelay) throw new Error(Message.failed(['find', 'device relay', dr_id]));
 
         res.status(200).json(deviceRelay);
     })
 
     export const update = Route.asyncHandler(async (req, res) => {
+        const d_id = +req.params.d_id;
         const dr_id = +req.params.dr_id;
         const { dr_name, current_state } = req.body;
         const transaction = await db.transaction({ rollbackOnError: true });
 
-        const prevDeviceRelay = await DeviceRelay.findByPk(dr_id, { transaction });
+        const prevDeviceRelay = await DeviceRelay.findByPk(dr_id, { where: { d_id }, transaction });
         if (!prevDeviceRelay) throw new Error(Message.failed(['update', 'device relay', dr_id], {
             causer: ['find', 'previous device relay']
         }));
 
         const previous_state = prevDeviceRelay.current_state;
 
-        const deviceRelay = await DeviceRelay.updateByPk(dr_id, { dr_name, current_state, previous_state }, { transaction });
+        const deviceRelay = await DeviceRelay.updateByPk(dr_id,
+            { dr_name, current_state, previous_state },
+            { where: { d_id }, transaction }
+        );
         if (!deviceRelay) throw new Error(Message.failed(['update', 'device relay', dr_id]));
 
         const ual = await createUserActivityLog({
@@ -141,13 +146,10 @@ export namespace DeviceRelayHandler {
         const transaction = await db.transaction({ rollbackOnError: true });
 
         const deviceRelays = await DeviceRelay.delete({ where: { d_id }, transaction });
-        if (!deviceRelays) throw new Error(Message.failed(['delete', 'all device relays', { d_id }]));
-        if (!deviceRelays.length) throw new Error(Message.failed(['delete', 'device relays', { d_id }], {
-            causer: ['find', 'device relays']
-        }));
+        if (!deviceRelays || !deviceRelays.length) throw new Error(Message.failed(['delete', 'all device relays', { d_id }]));
 
         const ual = await createUserActivityLog({
-            ual_type: 'DEVICE_RELAYS_DELETE',
+            ual_type: 'DEVICE_RELAY_DELETE_ALL',
             ual_activity: Message.success(['delete', 'all device relays', { d_id }]),
             user_id: getPayload(req).user_id
         }, transaction);
@@ -160,10 +162,11 @@ export namespace DeviceRelayHandler {
     });
 
     export const remove = Route.asyncHandler(async (req, res) => {
+        const d_id = +req.params.d_id;
         const dr_id = +req.params.dr_id;
         const transaction = await db.transaction({ rollbackOnError: true });
 
-        const deviceRelay = await DeviceRelay.deleteByPk(dr_id, { transaction });
+        const deviceRelay = await DeviceRelay.deleteByPk(dr_id, { where: { d_id }, transaction });
         if (!deviceRelay) throw new Error(Message.failed(['delete', 'device relay', dr_id]));
 
         const ual = await createUserActivityLog({
