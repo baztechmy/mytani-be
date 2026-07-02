@@ -61,7 +61,7 @@ export namespace DeviceRelayHandler {
         res.status(201).json(deviceRelays);
     });
 
-    export const add = Route.asyncHandler(async (req, res) => {
+    export const addByDevice = Route.asyncHandler(async (req, res) => {
         const date = new Date();
 
         const d_id = +req.params.d_id;
