@@ -1,5 +1,5 @@
 // MIDDLEWARE
-import { Device, Site, User } from "../configs/db.config";
+import { Device, DeviceRelay, Site, User } from "../configs/db.config";
 import { getPayload } from "./authorization.middleware";
 
 // MODULE
@@ -102,7 +102,34 @@ namespace AccessControl {
             const user_role = payload.user_role as Roles;
             const isValidCompanyAndRole = roles.includes(user_role) && payload.comp_id === device.comp_id;
             if (!(isSuper(user_role) || isValidCompanyAndRole)) {
-                throw new Error('Forbidden access. Valid role or Device owner access required');
+                throw new Error('Forbidden access. Valid role or Device ownership access required');
+            }
+
+            res.status(200);
+            next();
+        });
+    }
+
+    export const deviceRelayOwner = (roles: Array<Roles> = []) => {
+        return Route.asyncHandler(async (req, res, next) => {
+            const payload = getPayload(req);
+            const d_id = +req.params.d_id;
+            const dr_id = +req.params.dr_id;
+
+            res.status(403);
+            if (!payload) throw new Error('Forbidden access. No session available');
+
+            const device = await Device.findByPk(d_id);
+            if (!device) throw new Error(`Forbidden access. Unable to find device [${d_id}]`);
+
+            const deviceRelay = await DeviceRelay.findByPk(dr_id);
+            if (!deviceRelay) throw new Error(`Forbidden access. Unable to find device relay [${dr_id}]`);
+
+            const user_role = payload.user_role as Roles;
+            const isValidCompanyAndRole = roles.includes(user_role) && payload.comp_id === device.comp_id;
+            const isValidDeviceOwnership = d_id === deviceRelay.d_id;
+            if (!(isSuper(user_role) || (isValidCompanyAndRole && isValidDeviceOwnership))) {
+                throw new Error('Forbidden access. Valid role or Device relay ownership access required');
             }
 
             res.status(200);

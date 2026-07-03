@@ -10,6 +10,7 @@ import Authorize from '../middlewares/authorization.middleware';
 
 // MODULES
 import { Router } from 'express';
+import { DeviceRelayScheduleHandler } from '../controllers/device-relay-schedule.controller';
 
 const deviceRouter = Router();
 deviceRouter.use(Authorize.accesstoken);
@@ -30,9 +31,18 @@ deviceRouter.route('/:d_id/relays')
 deviceRouter.route('/:d_id/relays/add')
     .post(AccessControl.deviceOwner(['admin', 'user']), DeviceRelayHandler.addByDevice);
 deviceRouter.route('/:d_id/relays/:dr_id')
-    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceRelayHandler.find)
-    .patch(AccessControl.deviceOwner(['admin', 'user']), DeviceRelayHandler.update)
-    .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceRelayHandler.remove);
+    .get(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.find)
+    .patch(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.update)
+    .delete(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.remove);
+
+// Device relay schedules
+deviceRouter.route('/:d_id/relays/:dr_id/schedules')
+    .post(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.createByDeviceRelay)
+    .get(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.findAllByDeviceRelay)
+deviceRouter.route('/:d_id/relays/:dr_id/schedules/:drs_id')
+    .get(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.find)
+    .patch(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.update)
+    .delete(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.remove)
 
 // Device params
 deviceRouter.route('/:d_id/params')

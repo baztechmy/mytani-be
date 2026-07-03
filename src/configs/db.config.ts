@@ -89,6 +89,19 @@ export const DeviceRelay = db.define('device_relays', {
 });
 DeviceRelay.setForeignKey(Device, 'd_id');
 
+export const DeviceRelaySchedule = db.define('device_relay_schedules', {
+    drs_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+    drs_name: { type: DataTypes.TEXT, allowNull: false },
+    action: { type: DataTypes.BOOLEAN, allowNull: false },
+    time: { type: DataTypes.TIME, allowNull: false },
+    recurrence: { type: DataTypes.TEXT, allowNull: false },
+    start_at: { type: DataTypes.DATE, allowNull: false },
+    end_at: { type: DataTypes.DATE, allowNull: false },
+    active: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    dr_id: { type: DataTypes.INTEGER, allowNull: false },
+});
+DeviceRelaySchedule.setForeignKey(DeviceRelay, 'dr_id');
+
 export const DeviceParam = db.define('device_params', {
     dp_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
     dp_did: { type: DataTypes.VARCHAR(255), allowNull: false, unique: true },
