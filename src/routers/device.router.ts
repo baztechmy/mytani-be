@@ -2,6 +2,7 @@
 import { DeviceHandler } from '../controllers/device.controller';
 import { DeviceRelayHandler } from '../controllers/device-relay.controller';
 import { DeviceParamHandler } from '../controllers/device-param.controller';
+import { DeviceDataHandler } from '../controllers/device-data.controller';
 
 // MIDDLEWARES
 import AccessControl from '../middlewares/access-control.middleware';
@@ -41,5 +42,10 @@ deviceRouter.route('/:d_id/params/:dp_id')
     .get(AccessControl.deviceOwner(['admin', 'user']), DeviceParamHandler.find)
     .patch(AccessControl.deviceOwner(['admin', 'user']), DeviceParamHandler.update)
     .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceParamHandler.remove);
+
+// Device data
+deviceRouter.route('/:d_id/data')
+    .post(AccessControl.deviceOwner(['admin', 'user']), DeviceDataHandler.createByDevice)
+    .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceDataHandler.removeByDevice);
 
 export default deviceRouter;
