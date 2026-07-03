@@ -23,9 +23,12 @@ export namespace DeviceRelayHandler {
         const [created_at, updated_at] = [date, date];
         const transaction = await db.transaction({ rollbackOnError: true });
 
-        if (!isArrayObj<string>(dr_names, name => typeof name === 'string')) throw new Error(Message.failed(['create', 'new device relays', { d_id }], {
-            subMessage: 'dr_names must be an array of strings'
-        }));
+        if (!isArrayObj<string>(dr_names, name => typeof name === 'string')) {
+            res.status(400);
+            throw new Error(Message.failed(['create', 'new device relays', { d_id }], {
+                subMessage: 'dr_names must be an array of strings'
+            }));
+        }
 
         const oldDeviceRelays = await DeviceRelay.delete({ where: { d_id }, transaction });
         if (!oldDeviceRelays) throw new Error(Message.failed(['create', 'new device relays', { d_id }], {
@@ -95,7 +98,7 @@ export namespace DeviceRelayHandler {
     export const findAllByDevice = Route.asyncHandler(async (req, res) => {
         const d_id = +req.params.d_id;
         const deviceRelays = await DeviceRelay.find({ where: { d_id } });
-        if (!deviceRelays) throw new Error(Message.failed(['find', 'all device relays']));
+        if (!deviceRelays) throw new Error(Message.failed(['find', 'all device relays', { d_id }]));
 
         res.status(200).json(deviceRelays);
     });
