@@ -13,17 +13,31 @@ import { getPayload } from "../middlewares/authorization.middleware";
 // SERVICES
 import { createUserActivityLog } from "../services/user-activity-log.service";
 
+const dp_units = ['°C', '°F', '%', 'pH', 'ppm', 'lux', 'm', 'cm', 'mm', 'L', 'mL', 'V', 'A', 'W', 'kWh', 'dS/m', 'µS/cm', 'kg', 'g'];
+function validateParamUnit(obj: any): string | undefined {
+    if (typeof obj !== 'string' || !dp_units.includes(obj)) return undefined;
+    return obj
+}
+
 export namespace DeviceParamHandler {
     export const createByDevice = Route.asyncHandler(async (req, res) => {
         const date = new Date();
-
         const d_id = +req.params.d_id;
+
         const { dp_did, dp_name } = req.body;
+        const dp_unit = validateParamUnit(req.body.dp_unit);
         const { dp_target } = req.body; // optional
         const [created_at, updated_at] = [date, date];
         const transaction = await db.transaction({ rollbackOnError: true });
 
-        const deviceParam = await DeviceParam.create({ dp_did, dp_name, dp_target, created_at, updated_at, d_id }, { transaction });
+        if (!dp_units) {
+            res.status(400);
+            throw new Error(Message.failed(['create', 'new device param'], {
+                subMessage: 'dp_unit is invalid'
+            }));
+        }
+
+        const deviceParam = await DeviceParam.create({ dp_did, dp_name, dp_unit, dp_target, created_at, updated_at, d_id }, { transaction });
         if (!deviceParam) throw new Error(Message.failed(['create', 'new device param', { d_id }]));
 
         const { dp_id } = deviceParam;
@@ -43,6 +57,7 @@ export namespace DeviceParamHandler {
     export const find = Route.asyncHandler(async (req, res) => {
         const d_id = +req.params.d_id;
         const dp_id = +req.params.dp_id;
+
         const deviceParam = await DeviceParam.findByPk(dp_id, { where: { d_id } });
         if (!deviceParam) throw new Error(Message.failed(['find', 'device param', dp_id]));
 
@@ -51,6 +66,7 @@ export namespace DeviceParamHandler {
 
     export const findAllByDevice = Route.asyncHandler(async (req, res) => {
         const d_id = +req.params.d_id;
+
         const deviceParams = await DeviceParam.find({ where: { d_id } });
         if (!deviceParams) throw new Error(Message.failed(['find', 'device params', { d_id }]));
 
@@ -62,11 +78,12 @@ export namespace DeviceParamHandler {
         const dp_id = +req.params.dp_id;
 
         const { dp_did, dp_name, dp_target } = req.body;
+        const dp_unit = validateParamUnit(req.body.dp_unit);
         const updated_at = new Date();
         const transaction = await db.transaction({ rollbackOnError: true });
 
         const deviceParam = await DeviceParam.updateByPk(dp_id,
-            { dp_did, dp_name, dp_target, updated_at },
+            { dp_did, dp_name, dp_unit, dp_target, updated_at },
             { where: { d_id }, transaction }
         );
         if (!deviceParam) throw new Error(Message.failed(['update', 'device param', dp_id]));

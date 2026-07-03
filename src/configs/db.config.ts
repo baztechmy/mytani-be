@@ -106,6 +106,7 @@ export const DeviceParam = db.define('device_params', {
     dp_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
     dp_did: { type: DataTypes.VARCHAR(255), allowNull: false, unique: true },
     dp_name: { type: DataTypes.VARCHAR(255), allowNull: false },
+    dp_unit: { type: DataTypes.VARCHAR(16), allowNull: false },
     dp_target: { type: DataTypes.NUMERIC(30, 3), allowNull: true },
     created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
