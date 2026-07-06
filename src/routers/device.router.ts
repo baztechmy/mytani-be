@@ -1,7 +1,7 @@
 // CONTROLLERS
 import { DeviceHandler } from '../controllers/device.controller';
 import { DeviceRelayHandler } from '../controllers/device-relay.controller';
-import { DeviceParamHandler } from '../controllers/device-param.controller';
+import { DeviceMonitorParamHandler } from '../controllers/device-monitor-param.controller';
 import { DeviceDataHandler } from '../controllers/device-data.controller';
 
 // MIDDLEWARES
@@ -44,14 +44,14 @@ deviceRouter.route('/:d_id/relays/:dr_id/schedules/:drs_id')
     .patch(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.update)
     .delete(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.remove)
 
-// Device params
+// Device monitor params
 deviceRouter.route('/:d_id/params')
-    .post(AccessControl.deviceOwner(['admin', 'user']), DeviceParamHandler.createByDevice)
-    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceParamHandler.findAllByDevice);
+    .post(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.createByDevice)
+    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.findAllByDevice);
 deviceRouter.route('/:d_id/params/:dp_id')
-    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceParamHandler.find)
-    .patch(AccessControl.deviceOwner(['admin', 'user']), DeviceParamHandler.update)
-    .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceParamHandler.remove);
+    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.find)
+    .patch(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.update)
+    .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.remove);
 
 // Device data
 deviceRouter.route('/:d_id/data')

@@ -102,17 +102,17 @@ export const DeviceRelaySchedule = db.define('device_relay_schedules', {
 });
 DeviceRelaySchedule.setForeignKey(DeviceRelay, 'dr_id');
 
-export const DeviceParam = db.define('device_params', {
-    dp_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
-    dp_did: { type: DataTypes.VARCHAR(255), allowNull: false, unique: true },
-    dp_name: { type: DataTypes.VARCHAR(255), allowNull: false },
-    dp_unit: { type: DataTypes.VARCHAR(16), allowNull: false },
-    dp_target: { type: DataTypes.NUMERIC(30, 3), allowNull: true },
+export const DeviceMonitorParam = db.define('device_monitor_params', {
+    dmp_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+    dmp_tag: { type: DataTypes.VARCHAR(255), allowNull: false },
+    dmp_name: { type: DataTypes.VARCHAR(511), allowNull: false },
+    dmp_unit: { type: DataTypes.VARCHAR(16), allowNull: false },
+    dmp_target: { type: DataTypes.NUMERIC(30, 3), allowNull: true },
     created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     d_id: { type: DataTypes.SERIAL, allowNull: false },
-}, { extraScript: { in: 'UNIQUE (dp_did, d_id)', } });
-DeviceParam.setForeignKey(Device, 'd_id');
+}, { extraScript: { in: 'UNIQUE (dmp_tag, d_id)', } });
+DeviceMonitorParam.setForeignKey(Device, 'd_id');
 
 export const DeviceDatas: Record<number, ReturnType<typeof db.define>> = {};
 export function createDeviceData(d_id: number) {
