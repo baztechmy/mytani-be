@@ -11,7 +11,7 @@ import cookieParser from 'cookie-parser';
 
 App.listen({
     port: env.PORT,
-    version: '1.0.0 Build 2',
+    version: '1.0.0 Build 3',
     cors: [env.ORIGIN_URL],
     beforeListen: async (app) => {
         app.use(cookieParser());
