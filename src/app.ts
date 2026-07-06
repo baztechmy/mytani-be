@@ -3,7 +3,7 @@ import router from "./routers";
 
 // CONFIGS
 import env from "./configs/env.config";
-import { createDeviceData, db, Device } from "./configs/db.config";
+import { db } from "./configs/db.config";
 
 // MODULES
 import App from "@harrypoggers25/app-express";
