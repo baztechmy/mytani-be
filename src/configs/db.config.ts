@@ -102,6 +102,17 @@ export const DeviceRelaySchedule = db.define('device_relay_schedules', {
 });
 DeviceRelaySchedule.setForeignKey(DeviceRelay, 'dr_id');
 
+export const DeviceControlParam = db.define('device_control_params', {
+    dcp_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
+    dcp_tag: { type: DataTypes.VARCHAR(255), allowNull: false },
+    dcp_name: { type: DataTypes.VARCHAR(511), allowNull: false },
+    dcp_unit: { type: DataTypes.VARCHAR(16), allowNull: false },
+    created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
+    updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
+    d_id: { type: DataTypes.SERIAL, allowNull: false },
+}, { extraScript: { in: 'UNIQUE (dcp_tag, d_id)', } });
+DeviceControlParam.setForeignKey(Device, 'd_id');
+
 export const DeviceMonitorParam = db.define('device_monitor_params', {
     dmp_id: { type: DataTypes.SERIAL, allowNull: false, primaryKey: true },
     dmp_tag: { type: DataTypes.VARCHAR(255), allowNull: false },

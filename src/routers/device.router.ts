@@ -1,7 +1,9 @@
 // CONTROLLERS
 import { DeviceHandler } from '../controllers/device.controller';
 import { DeviceRelayHandler } from '../controllers/device-relay.controller';
+import { DeviceRelayScheduleHandler } from '../controllers/device-relay-schedule.controller';
 import { DeviceMonitorParamHandler } from '../controllers/device-monitor-param.controller';
+import { DeviceControlParamHandler } from '../controllers/device-control-param.controller';
 import { DeviceDataHandler } from '../controllers/device-data.controller';
 
 // MIDDLEWARES
@@ -10,7 +12,6 @@ import Authorize from '../middlewares/authorization.middleware';
 
 // MODULES
 import { Router } from 'express';
-import { DeviceRelayScheduleHandler } from '../controllers/device-relay-schedule.controller';
 
 const deviceRouter = Router();
 deviceRouter.use(Authorize.accesstoken);
@@ -45,13 +46,22 @@ deviceRouter.route('/:d_id/relays/:dr_id/schedules/:drs_id')
     .delete(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.remove)
 
 // Device monitor params
-deviceRouter.route('/:d_id/params')
+deviceRouter.route('/:d_id/params/monitor')
     .post(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.createByDevice)
     .get(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.findAllByDevice);
-deviceRouter.route('/:d_id/params/:dp_id')
+deviceRouter.route('/:d_id/params/monitor/:dp_id')
     .get(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.find)
     .patch(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.update)
     .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.remove);
+
+// Device control params
+deviceRouter.route('/:d_id/params/control')
+    .post(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.createByDevice)
+    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.findAllByDevice);
+deviceRouter.route('/:d_id/params/control/:dp_id')
+    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.find)
+    .patch(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.update)
+    .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.remove);
 
 // Device data
 deviceRouter.route('/:d_id/data')
