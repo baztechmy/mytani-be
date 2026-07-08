@@ -46,9 +46,9 @@ export namespace DeviceRelayScheduleHandler {
             causer: ['find', 'device']
         }));
 
-        const { can_control } = device;
-        if (!can_control) throw new Error(Message.failed(['create', 'new device relay schedule', { dr_id }], {
-            subMessage: `can_control must be toggled on device [${d_id}]`
+        const { has_relay } = device;
+        if (!has_relay) throw new Error(Message.failed(['create', 'new device relay schedule', { dr_id }], {
+            subMessage: `has_relay must be toggled on device [${d_id}]`
         }));
 
         const deviceRelaySchedule = await DeviceRelaySchedule.create(

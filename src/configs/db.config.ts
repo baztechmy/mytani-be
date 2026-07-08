@@ -65,6 +65,7 @@ export const Device = db.define('devices', {
     d_name: { type: DataTypes.VARCHAR(255), allowNull: false },
     can_monitor: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     can_control: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    has_relay: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     comp_id: { type: DataTypes.INTEGER, allowNull: false },
     site_id: { type: DataTypes.INTEGER, allowNull: false },
 });

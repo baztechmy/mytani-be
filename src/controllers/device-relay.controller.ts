@@ -46,9 +46,9 @@ export namespace DeviceRelayHandler {
             deviceRelays.push(deviceRelay);
         }
 
-        const device = await Device.updateByPk(d_id, { can_control: true }, { transaction });
+        const device = await Device.updateByPk(d_id, { has_relay: true }, { transaction });
         if (!device) throw new Error(Message.failed(['create', 'new device relay', { d_id }], {
-            causer: ['update', 'device']
+            subMessage: 'Unable to toggle has_relay on device'
         }));
 
         const ual = await createUserActivityLog({
@@ -77,7 +77,7 @@ export namespace DeviceRelayHandler {
         });
         if (!deviceRelay) throw new Error(Message.failed(['add', 'new device relay', { d_id }]));
 
-        const device = await Device.updateByPk(d_id, { can_control: true }, { transaction });
+        const device = await Device.updateByPk(d_id, { has_relay: true }, { transaction });
         if (!device) throw new Error(Message.failed(['add', 'new device relay', { d_id }], {
             causer: ['update', 'device']
         }));
@@ -151,6 +151,11 @@ export namespace DeviceRelayHandler {
         const deviceRelays = await DeviceRelay.delete({ where: { d_id }, transaction });
         if (!deviceRelays || !deviceRelays.length) throw new Error(Message.failed(['delete', 'all device relays', { d_id }]));
 
+        const device = await Device.updateByPk(d_id, { has_relay: false }, { transaction });
+        if (!device) throw new Error(Message.failed(['delete', 'all device relays', { d_id }], {
+            subMessage: 'Unable to toggle has_relay on device'
+        }));
+
         const ual = await createUserActivityLog({
             ual_type: 'DEVICE_RELAY_DELETE_ALL',
             ual_activity: Message.success(['delete', 'all device relays', { d_id }]),
@@ -171,6 +176,18 @@ export namespace DeviceRelayHandler {
 
         const deviceRelay = await DeviceRelay.deleteByPk(dr_id, { where: { d_id }, transaction });
         if (!deviceRelay) throw new Error(Message.failed(['delete', 'device relay', dr_id]));
+
+        const deviceRelays = await DeviceRelay.find({ where: { d_id }, transaction });
+        if (!deviceRelays) throw new Error(Message.failed(['delete', 'device relay', dr_id], {
+            causer: ['find', 'remaining device relays']
+        }));
+
+        if (!deviceRelays.length) {
+            const device = await Device.updateByPk(d_id, { has_relay: false }, { transaction });
+            if (!device) throw new Error(Message.failed(['delete', 'device relay', dr_id], {
+                subMessage: 'Unable to toggle has_relay on device'
+            }));
+        }
 
         const ual = await createUserActivityLog({
             ual_type: 'DEVICE_RELAY_DELETE',
