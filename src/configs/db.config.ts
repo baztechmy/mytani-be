@@ -108,6 +108,7 @@ export const DeviceControlParam = db.define('device_control_params', {
     dcp_tag: { type: DataTypes.VARCHAR(255), allowNull: false },
     dcp_name: { type: DataTypes.VARCHAR(511), allowNull: false },
     dcp_unit: { type: DataTypes.VARCHAR(16), allowNull: false },
+    dcp_required: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
     created_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     updated_at: { type: DataTypes.TIMESTAMP, allowNull: false },
     d_id: { type: DataTypes.SERIAL, allowNull: false },
