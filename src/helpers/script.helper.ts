@@ -10,10 +10,7 @@ import { hashSync } from 'bcrypt-ts';
 import Message from './message.helper';
 
 namespace Script {
-    export async function createUsers(transaction: any) {
-        console.log(ch.green('CREATE USERS SCRIPT:'), `Altered db. All previous data have been`, ch.red('deleted'));
-
-        const date = new Date();
+    export async function createUsers(date: Date, transaction: any) {
         const comp_name = 'Super';
         const company = await Company.create({ comp_name, created_at: date, updated_at: date }, { transaction });
         if (!company) return console.log(ch.red('CREATE COMPANY ERROR:'), Message.failed(['create', 'company', { comp_name }]));
