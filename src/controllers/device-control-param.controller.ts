@@ -1,5 +1,5 @@
 // CONFIGS
-import { db, DeviceControlParam } from "../configs/db.config";
+import { db, Device, DeviceControlParam } from "../configs/db.config";
 
 // HELPERS
 import Message from "../helpers/message.helper";
@@ -41,6 +41,11 @@ export namespace DeviceControlParamHandler {
             { transaction }
         );
         if (!deviceParam) throw new Error(Message.failed(['create', 'new device control param', { d_id }]));
+
+        const device = await Device.updateByPk(d_id, { can_control: true }, { transaction });
+        if (!device) throw new Error(Message.failed(['delete', 'device control param', { d_id }], {
+            subMessage: 'Unable to toggle can_control on device'
+        }));
 
         const { dcp_id } = deviceParam;
         const ual = await createUserActivityLog({
@@ -103,6 +108,31 @@ export namespace DeviceControlParamHandler {
         res.status(200).json(deviceParam);
     });
 
+    export const removeAllByDevice = Route.asyncHandler(async (req, res) => {
+        const d_id = +req.params.d_id;
+        const transaction = await db.transaction({ rollbackOnError: true });
+
+        const deviceParam = await DeviceControlParam.delete({ where: { d_id }, transaction });
+        if (!deviceParam) throw new Error(Message.failed(['delete', 'device control params', { d_id }]));
+
+        const device = await Device.updateByPk(d_id, { can_control: false }, { transaction });
+        if (!device) throw new Error(Message.failed(['delete', 'device control params', { d_id }], {
+            subMessage: 'Unable to toggle can_control on device'
+        }));
+
+        const ual = await createUserActivityLog({
+            ual_type: 'DEVICE_CONTROL_PARAM_DELETE',
+            ual_activity: Message.success(['delete', 'device control params', { d_id }]),
+            user_id: getPayload(req).user_id
+        }, transaction);
+        if (!ual) throw new Error(Message.failed(['delete', 'device control param', { d_id }], {
+            causer: ['create', 'new user activity log']
+        }));
+
+        await transaction.commit();
+        res.status(200).json(deviceParam);
+    })
+
     export const remove = Route.asyncHandler(async (req, res) => {
         const d_id = +req.params.d_id;
         const dcp_id = +req.params.dcp_id;
@@ -111,9 +141,21 @@ export namespace DeviceControlParamHandler {
         const deviceParam = await DeviceControlParam.deleteByPk(dcp_id, { where: { d_id }, transaction });
         if (!deviceParam) throw new Error(Message.failed(['delete', 'device control param', dcp_id]));
 
+        const deviceParams = await DeviceControlParam.find({ where: { d_id }, transaction });
+        if (!deviceParams) throw new Error(Message.failed(['delete', 'device control param', dcp_id], {
+            causer: ['find', 'remaining device relays']
+        }));
+
+        if (!deviceParams.length) {
+            const device = await Device.updateByPk(d_id, { can_control: false }, { transaction });
+            if (!device) throw new Error(Message.failed(['delete', 'device control param', dcp_id], {
+                subMessage: 'Unable to toggle can_control on device'
+            }));
+        }
+
         const ual = await createUserActivityLog({
             ual_type: 'DEVICE_CONTROL_PARAM_DELETE',
-            ual_activity: Message.success(['delete', 'device', dcp_id]),
+            ual_activity: Message.success(['delete', 'device control param', dcp_id]),
             user_id: getPayload(req).user_id
         }, transaction);
         if (!ual) throw new Error(Message.failed(['delete', 'device control param', dcp_id], {

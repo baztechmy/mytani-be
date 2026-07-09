@@ -49,7 +49,7 @@ deviceRouter.route('/:d_id/relays/:dr_id/schedules/:drs_id')
 deviceRouter.route('/:d_id/params/monitor')
     .post(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.createByDevice)
     .get(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.findAllByDevice);
-deviceRouter.route('/:d_id/params/monitor/:dp_id')
+deviceRouter.route('/:d_id/params/monitor/:dmp_id')
     .get(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.find)
     .patch(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.update)
     .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.remove);
@@ -58,7 +58,7 @@ deviceRouter.route('/:d_id/params/monitor/:dp_id')
 deviceRouter.route('/:d_id/params/control')
     .post(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.createByDevice)
     .get(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.findAllByDevice);
-deviceRouter.route('/:d_id/params/control/:dp_id')
+deviceRouter.route('/:d_id/params/control/:dcp_id')
     .get(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.find)
     .patch(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.update)
     .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.remove);

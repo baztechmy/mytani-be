@@ -1,5 +1,5 @@
 // CONFIGS
-import { db, DeviceMonitorParam } from "../configs/db.config";
+import { db, Device, DeviceMonitorParam } from "../configs/db.config";
 
 // HELPERS
 import Message from "../helpers/message.helper";
@@ -42,6 +42,11 @@ export namespace DeviceMonitorParamHandler {
             { transaction }
         );
         if (!deviceParam) throw new Error(Message.failed(['create', 'new device monitor param', { d_id }]));
+
+        const device = await Device.updateByPk(d_id, { can_monitor: true }, { transaction });
+        if (!device) throw new Error(Message.failed(['delete', 'device monitor param', { d_id }], {
+            subMessage: 'Unable to toggle can_monitor on device'
+        }));
 
         const { dmp_id } = deviceParam;
         const ual = await createUserActivityLog({
@@ -111,6 +116,18 @@ export namespace DeviceMonitorParamHandler {
 
         const deviceParam = await DeviceMonitorParam.deleteByPk(dmp_id, { where: { d_id }, transaction });
         if (!deviceParam) throw new Error(Message.failed(['delete', 'device monitor param', dmp_id]));
+
+        const deviceParams = await DeviceMonitorParam.find({ where: { d_id }, transaction });
+        if (!deviceParams) throw new Error(Message.failed(['delete', 'device control param', dmp_id], {
+            causer: ['find', 'remaining device relays']
+        }));
+
+        if (!deviceParams.length) {
+            const device = await Device.updateByPk(d_id, { can_monitor: false }, { transaction });
+            if (!device) throw new Error(Message.failed(['delete', 'device control param', dmp_id], {
+                subMessage: 'Unable to toggle can_monitor on device'
+            }));
+        }
 
         const ual = await createUserActivityLog({
             ual_type: 'DEVICE_MONITOR_PARAM_DELETE',
