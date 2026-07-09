@@ -1,7 +1,7 @@
 import { stringifyJson } from "./json.helper";
 
 namespace Message {
-    type Actions = 'create' | 'add' | 'find' | 'update' | 'delete' | 'login' | 'logout' | 'authorize';
+    type Actions = 'add' | 'authorize' | 'create' | 'control' | 'delete' | 'find' | 'login' | 'logout' | 'update';
     type ArrayBody = [Actions, string, any] | [Actions, string];
 
     function formatKey(key: any): string {
@@ -10,14 +10,15 @@ namespace Message {
 
     function formatAction(action: Actions): string {
         const map: Record<Actions, string> = {
-            'create': 'Created',
             'add': 'Added',
-            'find': 'Fetched',
-            'update': 'Updated',
-            'delete': 'Deleted',
-            'login': 'Logged in',
-            'logout': 'Logged out',
             'authorize': 'Authorized',
+            'create': 'Created',
+            'control': 'Controlled',
+            'delete': 'Deleted',
+            'find': 'Fetched',
+            'logout': 'Logged out',
+            'login': 'Logged in',
+            'update': 'Updated',
         }
         return map[action];
     }

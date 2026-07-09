@@ -5,7 +5,7 @@ import { SiteHandler } from '../controllers/site.controller';
 import { DeviceHandler } from '../controllers/device.controller';
 
 // MIDDLEWARES
-import AccessControl from '../middlewares/access-control.middleware';
+import AC from '../middlewares/access-control.middleware';
 import Authorize from '../middlewares/authorization.middleware';
 
 // MODULES
@@ -15,19 +15,19 @@ const companyRouter = Router();
 companyRouter.use(Authorize.accesstoken);
 
 companyRouter.route('/')
-    .post(AccessControl.roles(), CompanyHandler.create)
-    .get(AccessControl.roles(), CompanyHandler.findAll);
+    .post(AC.roles(), CompanyHandler.create)
+    .get(AC.roles(), CompanyHandler.findAll);
 companyRouter.route('/:comp_id')
-    .get(AccessControl.companyAccount(['admin', 'user']), CompanyHandler.find)
-    .patch(AccessControl.companyAccount(['admin']), CompanyHandler.update)
-    .delete(AccessControl.companyAccount(['admin']), CompanyHandler.remove);
+    .get(AC.companyAccount(['admin', 'user']), CompanyHandler.find)
+    .patch(AC.companyAccount(['admin']), CompanyHandler.update)
+    .delete(AC.companyAccount(['admin']), CompanyHandler.remove);
 companyRouter.route('/:comp_id/users')
-    .post(AccessControl.companyAccount(['admin']), UserHandler.createByCompany)
-    .get(AccessControl.companyAccount(['admin']), UserHandler.findAllByCompany);
+    .post(AC.companyAccount(['admin']), UserHandler.createByCompany)
+    .get(AC.companyAccount(['admin']), UserHandler.findAllByCompany);
 companyRouter.route('/:comp_id/sites')
-    .post(AccessControl.companyAccount(['admin']), SiteHandler.createByCompany)
-    .get(AccessControl.companyAccount(['admin', 'user']), SiteHandler.findAllByCompany);
+    .post(AC.companyAccount(['admin']), SiteHandler.createByCompany)
+    .get(AC.companyAccount(['admin', 'user']), SiteHandler.findAllByCompany);
 companyRouter.route('/:comp_id/devices')
-    .get(AccessControl.companyAccount(), DeviceHandler.findAllByCompany);
+    .get(AC.companyAccount(), DeviceHandler.findAllByCompany);
 
 export default companyRouter;

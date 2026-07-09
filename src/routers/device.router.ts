@@ -7,7 +7,7 @@ import { DeviceControlParamHandler } from '../controllers/device-control-param.c
 import { DeviceDataHandler } from '../controllers/device-data.controller';
 
 // MIDDLEWARES
-import AccessControl from '../middlewares/access-control.middleware';
+import AC from '../middlewares/access-control.middleware';
 import Authorize from '../middlewares/authorization.middleware';
 
 // MODULES
@@ -18,54 +18,56 @@ deviceRouter.use(Authorize.accesstoken);
 
 // Devices
 deviceRouter.route('/')
-    .get(AccessControl.roles(), DeviceHandler.findAll);
+    .get(AC.roles(), DeviceHandler.findAll);
 deviceRouter.route('/:d_id')
-    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceHandler.find)
-    .patch(AccessControl.deviceOwner(['admin']), DeviceHandler.update)
-    .delete(AccessControl.deviceOwner(['admin']), DeviceHandler.remove);
+    .get(AC.deviceOwner(['admin', 'user']), DeviceHandler.find)
+    .patch(AC.deviceOwner(['admin']), DeviceHandler.update)
+    .delete(AC.deviceOwner(['admin']), DeviceHandler.remove);
 
 // Device relays
 deviceRouter.route('/:d_id/relays')
-    .post(AccessControl.deviceOwner(['admin', 'user']), DeviceRelayHandler.createByDevice)
-    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceRelayHandler.findAllByDevice)
-    .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceRelayHandler.removeAllByDevice);
+    .post(AC.deviceOwner(['admin', 'user']), DeviceRelayHandler.createByDevice)
+    .get(AC.deviceOwner(['admin', 'user']), DeviceRelayHandler.findAllByDevice)
+    .delete(AC.deviceOwner(['admin', 'user']), DeviceRelayHandler.removeAllByDevice);
 deviceRouter.route('/:d_id/relays/add')
-    .post(AccessControl.deviceOwner(['admin', 'user']), DeviceRelayHandler.addByDevice);
+    .post(AC.deviceOwner(['admin', 'user']), DeviceRelayHandler.addByDevice);
 deviceRouter.route('/:d_id/relays/:dr_id')
-    .get(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.find)
-    .patch(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.update)
-    .delete(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.remove);
+    .get(AC.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.find)
+    .patch(AC.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.update)
+    .delete(AC.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.remove);
 
 // Device relay schedules
 deviceRouter.route('/:d_id/relays/:dr_id/schedules')
-    .post(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.createByDeviceRelay)
-    .get(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.findAllByDeviceRelay)
+    .post(AC.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.createByDeviceRelay)
+    .get(AC.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.findAllByDeviceRelay)
 deviceRouter.route('/:d_id/relays/:dr_id/schedules/:drs_id')
-    .get(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.find)
-    .patch(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.update)
-    .delete(AccessControl.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.remove)
+    .get(AC.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.find)
+    .patch(AC.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.update)
+    .delete(AC.deviceRelayOwner(['admin', 'user']), DeviceRelayScheduleHandler.remove)
 
 // Device monitor params
 deviceRouter.route('/:d_id/params/monitor')
-    .post(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.createByDevice)
-    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.findAllByDevice);
+    .post(AC.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.createByDevice)
+    .get(AC.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.findAllByDevice);
 deviceRouter.route('/:d_id/params/monitor/:dmp_id')
-    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.find)
-    .patch(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.update)
-    .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.remove);
+    .get(AC.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.find)
+    .patch(AC.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.update)
+    .delete(AC.deviceOwner(['admin', 'user']), DeviceMonitorParamHandler.remove);
 
 // Device control params
 deviceRouter.route('/:d_id/params/control')
-    .post(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.createByDevice)
-    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.findAllByDevice);
+    .post(AC.deviceOwner(['admin', 'user']), DeviceControlParamHandler.createByDevice)
+    .get(AC.deviceOwner(['admin', 'user']), DeviceControlParamHandler.findAllByDevice);
 deviceRouter.route('/:d_id/params/control/:dcp_id')
-    .get(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.find)
-    .patch(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.update)
-    .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceControlParamHandler.remove);
+    .get(AC.deviceOwner(['admin', 'user']), DeviceControlParamHandler.find)
+    .patch(AC.deviceOwner(['admin', 'user']), DeviceControlParamHandler.update)
+    .delete(AC.deviceOwner(['admin', 'user']), DeviceControlParamHandler.remove);
+
+// Device control
 
 // Device data
 deviceRouter.route('/:d_id/data')
-    .post(AccessControl.deviceOwner(['admin', 'user']), DeviceDataHandler.createByDevice)
-    .delete(AccessControl.deviceOwner(['admin', 'user']), DeviceDataHandler.removeByDevice);
+    .post(AC.deviceOwner(['admin', 'user']), DeviceDataHandler.createByDevice)
+    .delete(AC.deviceOwner(['admin', 'user']), DeviceDataHandler.removeByDevice);
 
 export default deviceRouter;

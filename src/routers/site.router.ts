@@ -3,7 +3,7 @@ import { DeviceHandler } from '../controllers/device.controller';
 import { SiteHandler } from '../controllers/site.controller';
 
 // MIDDLEWARES
-import AccessControl from '../middlewares/access-control.middleware';
+import AC from '../middlewares/access-control.middleware';
 import Authorize from '../middlewares/authorization.middleware';
 
 // MODULES
@@ -13,13 +13,13 @@ const siteRouter = Router();
 siteRouter.use(Authorize.accesstoken);
 
 siteRouter.route('/')
-    .get(AccessControl.roles(), SiteHandler.findAll);
+    .get(AC.roles(), SiteHandler.findAll);
 siteRouter.route('/:site_id')
-    .get(AccessControl.siteOwner(['admin', 'user']), SiteHandler.find)
-    .patch(AccessControl.siteOwner(['admin']), SiteHandler.update)
-    .delete(AccessControl.siteOwner(['admin']), SiteHandler.remove);
+    .get(AC.siteOwner(['admin', 'user']), SiteHandler.find)
+    .patch(AC.siteOwner(['admin']), SiteHandler.update)
+    .delete(AC.siteOwner(['admin']), SiteHandler.remove);
 siteRouter.route('/:site_id/devices')
-    .post(AccessControl.siteOwner(['admin']), DeviceHandler.createBySite)
-    .get(AccessControl.siteOwner(['admin', 'user']), DeviceHandler.findAllBySite);
+    .post(AC.siteOwner(['admin']), DeviceHandler.createBySite)
+    .get(AC.siteOwner(['admin', 'user']), DeviceHandler.findAllBySite);
 
 export default siteRouter;

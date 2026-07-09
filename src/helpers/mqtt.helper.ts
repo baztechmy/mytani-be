@@ -107,69 +107,66 @@ namespace Mqtt {
         }
 
         public disconnect() {
-            if (!this.client) {
-                console.log(ch.red('MQTT DISCONNECT ERROR:'), 'Client is not currently connected to an MQTT broker');
-                return;
+            try {
+                if (!this.client) throw new Error('Client is not currently connected to an MQTT broker');
+
+                this.invokedDisconnect = true;
+                this.client.end(() => {
+                    console.log(ch.green('MQTT DISCONNECT:'), `Client disconnected from MQTT broker at ${this.config.host}`);
+
+                    this.client = undefined;
+                    this.subscribedTopicHandlers = {};
+                });
+            } catch (error: any) {
+                console.log(ch.red('MQTT DISCONNECT ERROR:'), error.message ?? error);
             }
-
-            this.invokedDisconnect = true;
-            this.client.end(() => {
-                console.log(ch.green('MQTT DISCONNECT:'), `Client disconnected from MQTT broker at ${this.config.host}`);
-
-                this.client = undefined;
-                this.subscribedTopicHandlers = {};
-            });
         }
 
         public reconnect() {
-            if (!this.client) {
-                console.log(ch.red('MQTT RECONNECT ERROR:'), 'Client is not currently connected to an MQTT broker');
-                return;
-            }
+            try {
+                if (!this.client) throw new Error('Client is not currently connected to an MQTT broker');
 
-            console.log(ch.green('MQTT RECONNECTING:'), `Client reconnecting to MQTT broker at ${this.config.host}`);
-            this.client.reconnect();
+                console.log(ch.green('MQTT RECONNECTING:'), `Client reconnecting to MQTT broker at ${this.config.host}`);
+                this.client.reconnect();
+            } catch (error: any) {
+                console.log(ch.red('MQTT RECONNECT ERROR:'), error.message ?? error);
+            }
         }
 
         public subscribe(topic: string, handler: (message: string) => (Promise<void> | void)) {
-            if (!this.client) {
-                console.log(ch.red('MQTT SUBSCRIBE ERROR:'), 'Client is not currently connected to an MQTT broker');
-                return;
-            }
-            if (Object.keys(this.subscribedTopicHandlers).includes(topic)) {
-                console.log(ch.red('MQTT SUBSCRIBE ERROR:'), `Client is already subscribed to the MQTT topic '${topic}'`);
-                return;
-            }
-            if (this.newTopics.some(oldTopic => oldTopic === topic)) {
-                console.log(ch.red('MQTT TOPIC DUPLICATE:'), `Client is already connecting to the MQTT topic '${topic}'`);
-                return;
-            }
-
-            this.newTopics.push(topic);
-            this.subscribedTopicHandlers[topic] = handler;
-            this.client.subscribe(topic, (error: any) => {
-                if (error) {
-                    console.log(ch.red('MQTT SUBSCRIBE ERROR:'), error.message ?? error);
-                    delete this.subscribedTopicHandlers[topic];
-                    return;
+            try {
+                if (!this.client) throw new Error('Client is not currently connected to an MQTT broker');
+                if (Object.keys(this.subscribedTopicHandlers).includes(topic)) {
+                    throw new Error(`Client is already subscribed to the MQTT topic '${topic}'`);
                 }
-            });
+                if (this.newTopics.some(oldTopic => oldTopic === topic)) {
+                    throw new Error(`Client is already connecting to the MQTT topic '${topic}'`);
+                }
+
+                this.newTopics.push(topic);
+                this.subscribedTopicHandlers[topic] = handler;
+                this.client.subscribe(topic, (error: any) => {
+                    if (error) {
+                        delete this.subscribedTopicHandlers[topic];
+                        throw error;
+                    }
+                });
+            } catch (error: any) {
+                console.log(ch.red('MQTT SUBSCRIBE ERROR:'), error.message ?? error);
+            }
         }
 
         public publish(topic: string, message: string) {
-            if (!this.client) {
-                console.log(ch.red('MQTT PUBLISH ERROR:'), 'Client is not currently connected to an MQTT broker');
-                return;
+            try {
+                if (!this.client) throw new Error('Client is not currently connected to an MQTT broker');
+                this.client.publish(topic, message, (error: any) => {
+                    if (error) throw error;
+
+                    console.log(ch.green('MQTT PUBLISH:'), `Client published message '${message}' to MQTT topic ${topic}`);
+                });
+            } catch (error: any) {
+                console.log(ch.red('MQTT PUBLISH ERROR:'), error.message ?? error);
             }
-
-            this.client.publish(topic, message, (error: any) => {
-                if (error) {
-                    console.log(ch.red('MQTT PUBLISH ERROR:'), error.message ?? error);
-                    return;
-                }
-
-                console.log(ch.green('MQTT PUBLISH:'), `Client published message '${message}' to MQTT topic ${topic}`);
-            });
         }
     }
 
