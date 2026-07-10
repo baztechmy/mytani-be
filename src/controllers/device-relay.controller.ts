@@ -1,12 +1,14 @@
 // CONFIGS
 import { db, Device, DeviceRelay } from "../configs/db.config";
+import { mqttClient } from "../configs/mqtt.config";
 
 // HELPERS
 import Message from "../helpers/message.helper";
-import { isArrayObj } from "../helpers/json.helper";
+import { isArrayObj, stringifyJson } from "../helpers/json.helper";
 
 // MODULES
 import Route from "@harrypoggers25/route";
+import { nanoid } from "nanoid";
 
 // MIDDLEWARES
 import AccessControl from "../middlewares/access-control.middleware";
@@ -14,6 +16,7 @@ import { getPayload } from "../middlewares/authorization.middleware";
 
 // SERVICES
 import { createUserActivityLog } from "../services/user-activity-log.service";
+import { hasRelayHandler } from "../services/mqtt.service";
 
 export namespace DeviceRelayHandler {
     export const createByDevice = Route.asyncHandler(async (req, res) => {
@@ -52,6 +55,8 @@ export namespace DeviceRelayHandler {
             if (!device) throw new Error(Message.failed(['create', 'new device relay', { d_id }], {
                 subMessage: 'Unable to toggle has_relay on device'
             }));
+
+            await hasRelayHandler(device);
         }
 
         const ual = await createUserActivityLog({
@@ -85,6 +90,8 @@ export namespace DeviceRelayHandler {
             if (!device) throw new Error(Message.failed(['add', 'new device relay', { d_id }], {
                 causer: ['update', 'device']
             }));
+
+            await hasRelayHandler(device);
         }
 
         const ual = await createUserActivityLog({
@@ -140,6 +147,118 @@ export namespace DeviceRelayHandler {
 
         await transaction.commit();
         res.status(200).json(deviceRelay);
+    });
+
+    export const controlAllByDevice = Route.asyncHandler(async (req, res) => {
+        const d_id = +req.params.d_id;
+        const { current_states } = req.body;
+        const transaction = await db.transaction({ rollbackOnError: true });
+
+        const device = AccessControl.fromReq(req).device;
+        if (!device.has_relay) {
+            throw new Error(Message.failed(['control', 'device relays', { d_id }], {
+                subMessage: 'has_relay must be toggled on'
+            }));
+        }
+
+        if (!isArrayObj<number>(current_states, state => state === 1 || state === 0)) {
+            res.status(400);
+            throw new Error(Message.failed(['control', 'device relays', { d_id }], {
+                subMessage: 'current_states must be an array of 1s and 0s'
+            }));
+        }
+
+        const deviceRelays = await DeviceRelay.find({ where: { d_id }, orderBy: { d_id: 'ASC' }, transaction });
+        if (!deviceRelays) throw new Error(Message.failed(['control', 'device relays', { d_id }], {
+            causer: ['find', 'device relays']
+        }));
+        if (current_states.length !== deviceRelays.length) throw new Error(Message.failed(['control', 'device relays', { d_id }], {
+            subMessage: 'relay count does not match'
+        }));
+
+        const updatedDeviceRelays = [];
+        for (let i = 0; i < current_states.length; i++) {
+            const { dr_id } = deviceRelays[i];
+            const previous_state = deviceRelays[i].current_state;
+            const current_state = current_states[i] === 0 ? false : true;
+            const updatedDeviceRelay = await DeviceRelay.updateByPk(dr_id, { current_state, previous_state }, { transaction });
+            if (!updatedDeviceRelay) throw new Error(Message.failed(['control', 'device relays', { d_id }], {
+                causer: ['update', 'device relay', dr_id]
+            }));
+            updatedDeviceRelays.push(updatedDeviceRelay);
+        }
+
+        // MQTT LOGIC
+        const temp = 'ccba97082958';
+        const { d_did } = device;
+        const topic = d_did === temp ? `pacer/${d_did}/control` : `pacer/${d_did}/control/relays`;
+        const uuid = d_did === temp ? '' : nanoid(16);
+        // const uuid = nanoid(16);
+        const message = stringifyJson({ outputs: current_states, req_uuid: uuid });
+        const publish = await mqttClient.publish(topic, message, { uuid });
+        if (!publish) {
+            await transaction.rollback();
+            throw new Error(Message.failed(['control', 'device relays', { d_id }], {
+                subMessage: 'MQTT publish response in invalid'
+            }));
+        }
+
+        await transaction.commit();
+        res.status(200).json(updatedDeviceRelays);
+    });
+
+    export const control = Route.asyncHandler(async (req, res) => {
+        const d_id = +req.params.d_id;
+        const dr_id = +req.params.dr_id;
+        const { current_state } = req.body;
+        const transaction = await db.transaction({ rollbackOnError: true });
+
+        const device = AccessControl.fromReq(req).device;
+        if (!device.has_relay) {
+            throw new Error(Message.failed(['control', 'device relay', { d_id }], {
+                subMessage: 'has_relay must be toggled on'
+            }));
+        }
+
+        if (current_state === undefined) throw new Error(Message.failed(['control', 'device relay', dr_id], {
+            subMessage: 'current_state is required'
+        }));
+
+        const deviceRelays = await DeviceRelay.find({ where: { d_id }, orderBy: { d_id: 'ASC' }, transaction });
+        if (!deviceRelays) throw new Error(Message.failed(['control', 'device relay', dr_id], {
+            causer: ['find', 'device relays']
+        }));
+
+        const index = deviceRelays.findIndex(deviceRelay => deviceRelay.dr_id === dr_id);
+        if (index === -1) {
+            res.status(404);
+            throw new Error(Message.failed(['control', 'device relay', dr_id], {
+                subMessage: `Device relay ${dr_id} not found`
+            }));
+        }
+
+        const previous_state = deviceRelays[index].current_state;
+        const updatedDeviceRelay = await DeviceRelay.updateByPk(dr_id, { current_state, previous_state }, { transaction });
+        if (!updatedDeviceRelay) throw new Error(Message.failed(['control', 'device relays', { d_id }], {
+            causer: ['update', 'device relay', dr_id]
+        }));
+
+        // MQTT LOGIC
+        const temp = 'ccba97082958';
+        const { d_did } = device;
+        const topic = d_did === temp ? `pacer/${d_did}/control` : `pacer/${d_did}/control/relays`;
+        const uuid = d_did === temp ? '' : nanoid(16);
+        const message = stringifyJson({ output: index + 1, state: current_state, req_uuid: uuid });
+        const publish = await mqttClient.publish(topic, message, { uuid });
+        if (!publish) {
+            await transaction.rollback();
+            throw new Error(Message.failed(['control', 'device relays', { d_id }], {
+                subMessage: 'MQTT publish response in invalid'
+            }));
+        }
+
+        await transaction.commit();
+        res.status(200).json(updatedDeviceRelay);
     });
 
     export const removeAllByDevice = Route.asyncHandler(async (req, res) => {
