@@ -31,10 +31,14 @@ deviceRouter.route('/:d_id/relays')
     .delete(AC.deviceOwner(['admin', 'user']), DeviceRelayHandler.removeAllByDevice);
 deviceRouter.route('/:d_id/relays/add')
     .post(AC.deviceOwner(['admin', 'user']), DeviceRelayHandler.addByDevice);
+deviceRouter.route('/:d_id/relays/control')
+    .post(AC.deviceOwner(['admin', 'user']), DeviceRelayHandler.controlAllByDevice);
 deviceRouter.route('/:d_id/relays/:dr_id')
     .get(AC.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.find)
     .patch(AC.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.update)
     .delete(AC.deviceRelayOwner(['admin', 'user']), DeviceRelayHandler.remove);
+deviceRouter.route('/:d_id/relays/:dr_id/control')
+    .post(AC.deviceOwner(['admin', 'user']), DeviceRelayHandler.control);
 
 // Device relay schedules
 deviceRouter.route('/:d_id/relays/:dr_id/schedules')
