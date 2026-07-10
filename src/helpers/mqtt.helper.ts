@@ -38,8 +38,8 @@ namespace Mqtt {
         }
     }
 
-    class Buffer {
-        private buffer: Record<string, string>;
+    class Buffer<T = any> {
+        private buffer: Record<string, T>;
         private expiry: Record<string, number>;
         private lifespan_ms: number;
 
@@ -48,13 +48,13 @@ namespace Mqtt {
             this.expiry = {};
             this.lifespan_ms = lifespan_ms ?? 10000; // 10 seconds
         }
-        public add(uuid: string, message: string) {
+        public add(uuid: string, val: any) {
             const now = Date.now();
             for (const [key, val] of Object.entries(this.expiry)) {
                 if (now >= val) this.remove(key);
             }
 
-            this.buffer[uuid] = message;
+            this.buffer[uuid] = val;
             this.expiry[uuid] = now + this.lifespan_ms;
         }
         public get(uuid: string) {
@@ -158,8 +158,6 @@ namespace Mqtt {
 
             client.on('message', async (topic, message) => {
                 try {
-                    if (this.newTopics.has(topic)) return;
-
                     if (this.showMessage) console.log(ch.yellow(`MQTT MESSAGE [${topic}]:`), `Client received message '${message.toString()}'`);
                     await this.subscribedTopicHandlers[topic](message.toString(), this.buffer);
                 } catch (error: any) {
@@ -252,11 +250,14 @@ namespace Mqtt {
             })();
         }
 
-        public async publish(topic: string, message: string, response?: { uuid: string, callback: (message: string) => Promise<void> }) {
+        public async publish(topic: string, message: string, response?: { uuid: string }) {
             return await timedHandler(this.timeout_ms, async end => {
                 if (!this.client) throw new Error('Client is not currently connected to an MQTT broker');
 
-                if (response) this.buffer.remove(response.uuid);
+                if (response) this.buffer.add(response.uuid, () => {
+                    console.log(ch.green(`MQTT PUBLISH [${topic}]:`), `Client published message '${message}' to MQTT topic ${topic}. Response received`);
+                    end();
+                });
                 this.client.publish(topic, message, (error: any) => {
                     if (error) throw error;
 
@@ -265,19 +266,9 @@ namespace Mqtt {
                         end();
                         return;
                     }
-
-                    console.log(ch.yellow(`MQTT PUBLISH [${topic}]:`), `Client published message '${message}' to MQTT topic ${topic}. Awaiting for response`);
-                    const interval = setInterval(async () => {
-                        if (this.buffer.has(response.uuid)) {
-                            await response.callback(this.buffer.get(response.uuid));
-                            clearInterval(interval);
-                            console.log(ch.green(`MQTT PUBLISH [${topic}]:`), `Client published message '${message}' to MQTT topic ${topic}. Response received`);
-                            end();
-                        }
-                    });
                 });
             }, error => {
-                console.log(ch.red('MQTT PUBLISH ERROR:'), error.message ?? error);
+                console.log(ch.red(`MQTT PUBLISH ERROR [${topic}]:`), error.message ?? error);
             })();
         }
     }
