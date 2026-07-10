@@ -273,6 +273,13 @@ export namespace DeviceRelayHandler {
             subMessage: 'Unable to toggle has_relay on device'
         }));
 
+        if (!(await hasRelayHandler(device))) {
+            await transaction.rollback();
+            throw new Error(Message.failed(['delete', 'all device relays', { d_id }], {
+                subMessage: 'Unable to unsubscribe to mqtt topic'
+            }))
+        };
+
         const ual = await createUserActivityLog({
             ual_type: 'DEVICE_RELAY_DELETE_ALL',
             ual_activity: Message.success(['delete', 'all device relays', { d_id }]),
@@ -304,6 +311,13 @@ export namespace DeviceRelayHandler {
             if (!device) throw new Error(Message.failed(['delete', 'device relay', dr_id], {
                 subMessage: 'Unable to toggle has_relay on device'
             }));
+
+            if (!(await hasRelayHandler(device))) {
+                await transaction.rollback();
+                throw new Error(Message.failed(['delete', 'all device relays', { d_id }], {
+                    subMessage: 'Unable to unsubscribe to mqtt topic'
+                }))
+            };
         }
 
         const ual = await createUserActivityLog({
