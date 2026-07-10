@@ -1,3 +1,4 @@
+// MODULES
 import ch from "@harrypoggers25/color-utils";
 import mqtt from "mqtt";
 
@@ -7,6 +8,7 @@ namespace Mqtt {
     };
     export interface MqttClientOptions {
         showMessage?: boolean;
+        timeout_ms?: number;
     }
     export interface MqttClientConnectOptions {
         onConnect?: (date: Date) => (Promise<void> | void);
@@ -14,22 +16,87 @@ namespace Mqtt {
         onClose?: (date: Date) => (Promise<void> | void);
     }
 
+    function timedHandler(timeout_ms: number, handler: (end: () => void) => Promise<void>, errorHandler: (error: any) => void | Promise<void>): () => Promise<boolean> {
+        return async () => {
+            let timer: NodeJS.Timeout | undefined;
+            const response = await Promise.race<{ success: boolean, error?: any }>([
+                new Promise(resolve => {
+                    timer = setTimeout(() => resolve({
+                        success: false,
+                        error: new Error('Request timed out')
+                    }), timeout_ms);
+                }),
+                new Promise(resolve => {
+                    const end = () => resolve({ success: true });
+                    handler(end).catch(error => resolve({ success: false, error }));
+                }),
+            ]);
+            if (!response.success) await errorHandler(response.error);
+            if (timer) clearTimeout(timer);
+
+            return response.success;
+        }
+    }
+
+    class Buffer {
+        private buffer: Record<string, string>;
+        private expiry: Record<string, number>;
+        private lifespan_ms: number;
+
+        constructor(lifespan_ms?: number) {
+            this.buffer = {};
+            this.expiry = {};
+            this.lifespan_ms = lifespan_ms ?? 10000; // 10 seconds
+        }
+        public add(uuid: string, message: string) {
+            const now = Date.now();
+            for (const [key, val] of Object.entries(this.expiry)) {
+                if (now >= val) this.remove(key);
+            }
+
+            this.buffer[uuid] = message;
+            this.expiry[uuid] = now + this.lifespan_ms;
+        }
+        public get(uuid: string) {
+            return this.buffer[uuid];
+        }
+        public has(uuid: string) {
+            if (this.buffer[uuid]) return true;
+            return false;
+        }
+        public remove(uuid: string) {
+            if (this.buffer[uuid]) {
+                delete this.expiry[uuid];
+                delete this.buffer[uuid];
+            }
+        }
+    }
+
     export class MqttClient {
         private config: MqttClientConfig;
         private client?: mqtt.MqttClient;
-        private subscribedTopicHandlers: Record<string, (message: string) => (Promise<void> | void)>;
+        private subscribedTopicHandlers: Record<string, (message: string, buffer: Buffer) => (Promise<void> | void)>;
         private showMessage: boolean;
         private newTopics: Set<string>;
+        private timeout_ms: number;
+        private buffer: Buffer;
 
         constructor(config: MqttClientConfig, options?: MqttClientOptions) {
             options = {
-                showMessage: options?.showMessage ?? true
+                showMessage: options?.showMessage ?? true,
+                timeout_ms: options?.timeout_ms ?? 10000, // 10 seconds
             };
 
             this.subscribedTopicHandlers = {};
             this.showMessage = options.showMessage!;
             this.newTopics = new Set;
+            this.timeout_ms = options.timeout_ms!;
+            this.buffer = new Buffer(this.timeout_ms);
             this.config = config;
+        }
+
+        public getTopics() {
+            return Object.keys(this.subscribedTopicHandlers);
         }
 
         public setConfig(config: MqttClientConfig): boolean {
@@ -43,24 +110,22 @@ namespace Mqtt {
         }
 
         public async connect(options?: MqttClientConnectOptions) {
-            this.client = (() => {
-                try {
-                    const client = mqtt.connect(this.config);
-                    client.once('connect', async () => {
-                        console.log(ch.green('MQTT CONNECT:'), `Client connected to MQTT broker at ${this.config.host}`);
-                        try {
-                            this.onEvents(client, options);
-                            await options?.onConnect?.(new Date());
-                        } catch (error: any) {
-                            console.log(ch.red('MQTT ONCONNECT ERROR:'), error.message ?? error);
-                        }
-                    });
-
-                    return client;
-                } catch (error: any) {
-                    console.log(ch.red('MQTT CONNECT:'), error.message ?? error);
-                    return undefined;
-                }
+            return await timedHandler(this.timeout_ms, async end => {
+                const client = mqtt.connect(this.config);
+                client.once('connect', async () => {
+                    console.log(ch.green('MQTT CONNECT:'), `Client connected to MQTT broker at ${this.config.host}`);
+                    try {
+                        this.onEvents(client, options);
+                        await options?.onConnect?.(new Date());
+                    } catch (error: any) {
+                        console.log(ch.red('MQTT ONCONNECT ERROR:'), error.message ?? error);
+                    } finally {
+                        end();
+                    }
+                });
+                this.client = client;
+            }, error => {
+                console.log(ch.red('MQTT CONNECT ERROR:'), error.message ?? error);
             })();
         }
 
@@ -92,27 +157,26 @@ namespace Mqtt {
             });
 
             client.on('message', async (topic, message) => {
-                if (this.newTopics.has(topic)) {
-                    this.newTopics.delete(topic);
-                    console.log(ch.green('MQTT SUBSCRIBE:'), `Client subscribed to MQTT topic ${topic}`);
-                }
+                try {
+                    if (this.newTopics.has(topic)) return;
 
-                if (this.showMessage) console.log(ch.yellow(`MQTT MESSAGE [${topic}]:`), `Client received message '${message.toString()}'`);
-                await this.subscribedTopicHandlers[topic](message.toString());
+                    if (this.showMessage) console.log(ch.yellow(`MQTT MESSAGE [${topic}]:`), `Client received message '${message.toString()}'`);
+                    await this.subscribedTopicHandlers[topic](message.toString(), this.buffer);
+                } catch (error: any) {
+                    console.log(ch.red(`MQTT MESSAGE ERROR [${topic}]:`), error.message ?? error);
+                }
             });
         }
 
         private offEvents() {
             if (!this.client) throw new Error('Client is not currently connected to an MQTT broker');
-            this.client.removeAllListeners('reconnect');
-            this.client.removeAllListeners('error');
-            this.client.removeAllListeners('close');
-            this.client.removeAllListeners('offline');
-            this.client.removeAllListeners('message');
+            for (const listener of ['reconnect', 'error', 'close', 'offline', 'message',]) {
+                this.client.removeAllListeners(listener as any);
+            }
         }
 
-        public disconnect(onDisconnect?: (date: Date) => (Promise<void> | void)) {
-            try {
+        public async disconnect(onDisconnect?: (date: Date) => (Promise<void> | void)) {
+            return await timedHandler(this.timeout_ms, async end => {
                 if (!this.client) throw new Error('Client is not currently connected to an MQTT broker');
 
                 this.offEvents();
@@ -125,10 +189,11 @@ namespace Mqtt {
 
                     this.client = undefined;
                     onDisconnect?.(new Date);
+                    end();
                 });
-            } catch (error: any) {
+            }, error => {
                 console.log(ch.red('MQTT DISCONNECT ERROR:'), error.message ?? error);
-            }
+            })();
         }
 
         public reconnect() {
@@ -142,8 +207,8 @@ namespace Mqtt {
             }
         }
 
-        public subscribe(topic: string, handler: (message: string) => (Promise<void> | void)) {
-            try {
+        public subscribe(topic: string, handler: (message: string, buffer: Buffer) => (Promise<void> | void)) {
+            return timedHandler(this.timeout_ms, async end => {
                 if (!this.client) throw new Error('Client is not currently connected to an MQTT broker');
                 if (this.getTopics().includes(topic)) {
                     throw new Error(`Client is already subscribed to the MQTT topic '${topic}'`);
@@ -159,14 +224,18 @@ namespace Mqtt {
                         delete this.subscribedTopicHandlers[topic];
                         throw error;
                     }
+
+                    console.log(ch.green('MQTT SUBSCRIBE:'), `Client subscribed to MQTT topic ${topic}`);
+                    this.newTopics.delete(topic);
+                    end();
                 });
-            } catch (error: any) {
+            }, error => {
                 console.log(ch.red('MQTT SUBSCRIBE ERROR:'), error.message ?? error);
-            }
+            })();
         }
 
-        public unsubscribe(topic: string) {
-            try {
+        public async unsubscribe(topic: string) {
+            return await timedHandler(this.timeout_ms, async end => {
                 if (!this.client) throw new Error('Client is not currently connected to an MQTT broker');
                 if (!this.getTopics().includes(topic)) {
                     throw new Error(`Client is not subscribed to topic '${topic}'`);
@@ -176,27 +245,40 @@ namespace Mqtt {
                     if (error) throw error;
 
                     if (!this.newTopics.delete(topic)) console.log(ch.green('MQTT UNSUBSCRIBE:'), `Client unsubscribed to topic '${topic}'`);
+                    end();
                 });
-            } catch (error: any) {
+            }, error => {
                 console.log(ch.red('MQTT UNSUBSCRIBE ERROR:'), error.message ?? error);
-            }
+            })();
         }
 
-        public publish(topic: string, message: string) {
-            try {
+        public async publish(topic: string, message: string, response?: { uuid: string, callback: (message: string) => Promise<void> }) {
+            return await timedHandler(this.timeout_ms, async end => {
                 if (!this.client) throw new Error('Client is not currently connected to an MQTT broker');
+
+                if (response) this.buffer.remove(response.uuid);
                 this.client.publish(topic, message, (error: any) => {
                     if (error) throw error;
 
-                    console.log(ch.green('MQTT PUBLISH:'), `Client published message '${message}' to MQTT topic ${topic}`);
-                });
-            } catch (error: any) {
-                console.log(ch.red('MQTT PUBLISH ERROR:'), error.message ?? error);
-            }
-        }
+                    if (!response) {
+                        console.log(ch.green(`MQTT PUBLISH [${topic}]:`), `Client published message '${message}' to MQTT topic ${topic}`);
+                        end();
+                        return;
+                    }
 
-        public getTopics() {
-            return Object.keys(this.subscribedTopicHandlers);
+                    console.log(ch.yellow(`MQTT PUBLISH [${topic}]:`), `Client published message '${message}' to MQTT topic ${topic}. Awaiting for response`);
+                    const interval = setInterval(async () => {
+                        if (this.buffer.has(response.uuid)) {
+                            await response.callback(this.buffer.get(response.uuid));
+                            clearInterval(interval);
+                            console.log(ch.green(`MQTT PUBLISH [${topic}]:`), `Client published message '${message}' to MQTT topic ${topic}. Response received`);
+                            end();
+                        }
+                    });
+                });
+            }, error => {
+                console.log(ch.red('MQTT PUBLISH ERROR:'), error.message ?? error);
+            })();
         }
     }
 
