@@ -46,10 +46,10 @@ namespace AccessControl {
             const comp_id = +req.params.comp_id;
 
             const isValidRole = roles.includes(user_role)
-            if (!(isSuper(user_role) || isValidRole)) throw new Error('Forbidden access. Valid role required');
-
             const isValidCompany = payload.comp_id === comp_id;
-            if (!isValidCompany) throw new Error('Forbidden access. Valid company account access required');
+            if (!(isSuper(user_role) || (isValidRole && isValidCompany))) {
+                throw new Error('Forbidden access. Valid role or company account access required');
+            }
 
             res.status(200);
             next();
