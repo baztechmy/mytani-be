@@ -9,6 +9,7 @@ import { isArrayObj } from "../helpers/json.helper";
 import Route from "@harrypoggers25/route";
 
 // MIDDLEWARES
+import AccessControl from "../middlewares/access-control.middleware";
 import { getPayload } from "../middlewares/authorization.middleware";
 
 // SERVICES
@@ -46,10 +47,12 @@ export namespace DeviceRelayHandler {
             deviceRelays.push(deviceRelay);
         }
 
-        const device = await Device.updateByPk(d_id, { has_relay: true }, { transaction });
-        if (!device) throw new Error(Message.failed(['create', 'new device relay', { d_id }], {
-            subMessage: 'Unable to toggle has_relay on device'
-        }));
+        if (!AccessControl.fromReq(req).device.has_relay) {
+            const device = await Device.updateByPk(d_id, { has_relay: true }, { transaction });
+            if (!device) throw new Error(Message.failed(['create', 'new device relay', { d_id }], {
+                subMessage: 'Unable to toggle has_relay on device'
+            }));
+        }
 
         const ual = await createUserActivityLog({
             ual_type: 'DEVICE_RELAYS_CREATE',
@@ -77,10 +80,12 @@ export namespace DeviceRelayHandler {
         });
         if (!deviceRelay) throw new Error(Message.failed(['add', 'new device relay', { d_id }]));
 
-        const device = await Device.updateByPk(d_id, { has_relay: true }, { transaction });
-        if (!device) throw new Error(Message.failed(['add', 'new device relay', { d_id }], {
-            causer: ['update', 'device']
-        }));
+        if (!AccessControl.fromReq(req).device.has_relay) {
+            const device = await Device.updateByPk(d_id, { has_relay: true }, { transaction });
+            if (!device) throw new Error(Message.failed(['add', 'new device relay', { d_id }], {
+                causer: ['update', 'device']
+            }));
+        }
 
         const ual = await createUserActivityLog({
             ual_type: 'DEVICE_RELAY_ADD',
@@ -97,7 +102,7 @@ export namespace DeviceRelayHandler {
 
     export const findAllByDevice = Route.asyncHandler(async (req, res) => {
         const d_id = +req.params.d_id;
-        const deviceRelays = await DeviceRelay.find({ where: { d_id } });
+        const deviceRelays = await DeviceRelay.find({ where: { d_id }, orderBy: { d_id: 'ASC' } });
         if (!deviceRelays) throw new Error(Message.failed(['find', 'all device relays', { d_id }]));
 
         res.status(200).json(deviceRelays);
@@ -115,18 +120,11 @@ export namespace DeviceRelayHandler {
     export const update = Route.asyncHandler(async (req, res) => {
         const d_id = +req.params.d_id;
         const dr_id = +req.params.dr_id;
-        const { dr_name, current_state } = req.body;
+        const { dr_name } = req.body;
         const transaction = await db.transaction({ rollbackOnError: true });
 
-        const prevDeviceRelay = await DeviceRelay.findByPk(dr_id, { where: { d_id }, transaction });
-        if (!prevDeviceRelay) throw new Error(Message.failed(['update', 'device relay', dr_id], {
-            causer: ['find', 'previous device relay']
-        }));
-
-        const previous_state = prevDeviceRelay.current_state;
-
         const deviceRelay = await DeviceRelay.updateByPk(dr_id,
-            { dr_name, current_state, previous_state },
+            { dr_name },
             { where: { d_id }, transaction }
         );
         if (!deviceRelay) throw new Error(Message.failed(['update', 'device relay', dr_id]));
