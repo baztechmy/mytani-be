@@ -72,6 +72,7 @@ deviceRouter.route('/:d_id/params/control/:dcp_id')
 // Device data
 deviceRouter.route('/:d_id/data')
     .post(AC.deviceOwner(['admin', 'user']), DeviceDataHandler.createByDevice)
+    .get(AC.deviceOwner(['admin', 'user']), DeviceDataHandler.findAllByDevice)
     .delete(AC.deviceOwner(['admin', 'user']), DeviceDataHandler.removeByDevice);
 
 export default deviceRouter;

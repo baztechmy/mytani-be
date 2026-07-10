@@ -255,14 +255,14 @@ namespace Mqtt {
                 if (!this.client) throw new Error('Client is not currently connected to an MQTT broker');
 
                 if (response) this.buffer.add(response.uuid, () => {
-                    console.log(ch.green(`MQTT PUBLISH [${topic}]:`), `Client published message '${message}' to MQTT topic ${topic}. Response received`);
+                    console.log(ch.green(`MQTT PUBLISH [${topic}]:`), `Client published message '${message}' to topic '${topic}'. Response received`);
                     end();
                 });
                 this.client.publish(topic, message, (error: any) => {
                     if (error) throw error;
 
                     if (!response) {
-                        console.log(ch.green(`MQTT PUBLISH [${topic}]:`), `Client published message '${message}' to MQTT topic ${topic}`);
+                        console.log(ch.green(`MQTT PUBLISH [${topic}]:`), `Client published message '${message}' to topic '${topic}'`);
                         end();
                         return;
                     }

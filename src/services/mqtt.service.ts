@@ -4,6 +4,7 @@ import { mqttClient } from "../configs/mqtt.config";
 
 // HELPERS
 import { parseJson } from "../helpers/json.helper";
+import Message from "../helpers/message.helper";
 
 export const onConnectHandler = async () => {
     const devices = await Device.find();
@@ -14,7 +15,50 @@ export const onConnectHandler = async () => {
         const topic_base = `pacer/${d_did}`;
         mqttClient.subscribe(`${topic_base}/status`, message => { });
 
-        if (has_relay) await hasRelayHandler(device);
+        if (can_monitor) {
+            const transaction = await db.transaction({ rollbackOnError: true });
+            if (!(await canMonitorHandler(device, false, transaction))) {
+                throw new Error('Failed to create device data instance');
+            }
+            await transaction.commit();
+        }
+        if (has_relay) {
+            if (!(await hasRelayHandler(device))) {
+                throw new Error('Failed to create device relay subscribe instance');
+            }
+        }
+
+    }
+}
+
+export const canMonitorHandler = async (device: ReturnType<typeof Device.getEmptyModel>, alter: boolean, transaction?: any) => {
+    const { d_id, d_did, can_monitor } = device;
+    const topic = d_did === 'ccba97082958' ? `pacer/${d_did}/data` : `pacer/${d_did}/data/monitor`; // temporary solution
+
+    if (can_monitor) {
+        const deviceData = createDeviceData(d_id);
+        if (!(await deviceData.sync({ alter, transaction }))) return false;
+        return await mqttClient.subscribe(topic, async message => {
+            const response = await deviceData.create({ raw_data: message, dd_date: new Date() });
+            if (!response) throw new Error(Message.failed(['create', 'raw data', { d_id }]));
+        });
+    } else {
+        await db.dropTable(DeviceDatas[d_id].tableName, { transaction });
+        return await mqttClient.unsubscribe(topic);
+    }
+
+}
+
+export const canControlHandler = (device: ReturnType<typeof Device.getEmptyModel>) => {
+    const { d_did, can_control } = device;
+    const topic = `pacer/${d_did}/data/control`;
+
+    if (can_control) {
+        mqttClient.subscribe(topic, async message => {
+            // console.log(message);
+        });
+    } else {
+        mqttClient.unsubscribe(topic);
     }
 }
 
@@ -24,7 +68,7 @@ export const hasRelayHandler = async (device: ReturnType<typeof Device.getEmptyM
 
     if (has_relay) {
         if (mqttClient.getTopics().includes(topic)) return;
-        mqttClient.subscribe(topic, async (message, buffer) => {
+        return await mqttClient.subscribe(topic, async (message, buffer) => {
             const { req_uuid = '' } = parseJson(message)
             if (buffer.has(req_uuid)) {
                 buffer.get(req_uuid)();
@@ -32,7 +76,7 @@ export const hasRelayHandler = async (device: ReturnType<typeof Device.getEmptyM
             }
         });
     } else {
-        mqttClient.unsubscribe(topic);
+        return await mqttClient.unsubscribe(topic);
     }
 }
 
