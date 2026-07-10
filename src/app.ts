@@ -22,7 +22,7 @@ App.listen({
     callback: async () => {
         await db.sync({ alter: false });
 
-        mqttClient.connect({
+        await mqttClient.connect({
             onConnect: onConnectHandler
         });
     }
