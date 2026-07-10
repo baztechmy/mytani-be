@@ -30,6 +30,7 @@
 | \_ | /devices/:d_id | PATCH, DELETE | Admin | Device owner |
 | Device Relay (by device) | /devices/:d_id/relays | POST, GET, DELETE | Admin, User | Device owner |
 | \_ | /devices/:d_id/relays/add | POST | Admin, User | Device owner |
+| \_ | /devices/:d_id/relays/control | POST | Admin, User | Device owner |
 | Device Relay | /devices/:d_id/relays/:dr_id | GET, PATCH, DELETE | Admin, User | Device owner |
 | Device Relay Schedule (by device relay) | /devices/:d_id/relays/:dr_id/schedules | POST, GET | Admin, User | Device owner |
 | Device Relay Schedule | /devices/:d_id/relays/:dr_id/schedules/:drs_id | GET, PATCH, DELETE | Admin, User | Device owner |
