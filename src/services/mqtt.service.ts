@@ -11,9 +11,13 @@ export const onConnectHandler = async () => {
     if (!devices) throw new Error('Failed to sync device data instances. Unable to find devices');
 
     for (const device of devices) {
-        const { d_id, d_did, can_monitor, can_control, has_relay } = device;
+        const { d_did, can_monitor, can_control, has_relay } = device;
         const topic_base = `pacer/${d_did}`;
-        mqttClient.subscribe(`${topic_base}/status`, message => { });
+        if (d_did === 'ccba97082958') {
+            await mqttClient.subscribe(`${topic_base}/status`, message => { });
+        } {
+            await mqttClient.subscribe(`${topic_base}/heartbeat`, message => { });
+        }
 
         if (can_monitor) {
             const transaction = await db.transaction({ rollbackOnError: true });
@@ -21,6 +25,11 @@ export const onConnectHandler = async () => {
                 throw new Error('Failed to create device data instance');
             }
             await transaction.commit();
+        }
+        if (can_control) {
+            if (!(await canControlHandler(device))) {
+                throw new Error('Failed to create device control subscribe instance');
+            }
         }
         if (has_relay) {
             if (!(await hasRelayHandler(device))) {
@@ -49,17 +58,21 @@ export const canMonitorHandler = async (device: ReturnType<typeof Device.getEmpt
 
 }
 
-export const canControlHandler = (device: ReturnType<typeof Device.getEmptyModel>) => {
+export const canControlHandler = async (device: ReturnType<typeof Device.getEmptyModel>) => {
     const { d_did, can_control } = device;
     const topic = `pacer/${d_did}/data/control`;
 
     if (can_control) {
-        mqttClient.subscribe(topic, async message => {
-            // console.log(message);
+        return await mqttClient.subscribe(topic, async (message, buffer) => {
+            const { req_uuid } = parseJson(message);
+            if (buffer.has(req_uuid)) {
+                buffer.get(req_uuid)();
+                buffer.remove(req_uuid);
+            }
         });
-    } else {
-        mqttClient.unsubscribe(topic);
     }
+
+    return await mqttClient.unsubscribe(topic);
 }
 
 export const hasRelayHandler = async (device: ReturnType<typeof Device.getEmptyModel>) => {
