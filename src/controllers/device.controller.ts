@@ -1,5 +1,5 @@
 // CONFIGS
-import { db, Device, Site } from "../configs/db.config";
+import { db, Device, DeviceControlParam, Site } from "../configs/db.config";
 
 // MODULES
 import Route from "@harrypoggers25/route";
@@ -10,6 +10,10 @@ import { getPayload } from "../middlewares/authorization.middleware";
 // SERVICES
 import { createUserActivityLog } from "../services/user-activity-log.service";
 import Message from "../helpers/message.helper";
+import { nanoid } from "nanoid";
+import AccessControl from "../middlewares/access-control.middleware";
+import { stringifyJson } from "../helpers/json.helper";
+import { mqttClient } from "../configs/mqtt.config";
 
 export namespace DeviceHandler {
     export const createBySite = Route.asyncHandler(async (req, res) => {
@@ -94,6 +98,44 @@ export namespace DeviceHandler {
 
         await transaction.commit();
         res.status(200).json(device);
+    });
+
+    export const control = Route.asyncHandler(async (req, res) => {
+        const d_id = +req.params.d_id;
+
+        const device = AccessControl.fromReq(req).device;
+        if (!device.can_control) throw new Error(Message.failed(['control', 'device', d_id], {
+            subMessage: 'can_control must be toggled on'
+        }));
+
+        const deviceParams = await DeviceControlParam.find({ where: { d_id: d_id } });
+        if (!deviceParams) throw new Error(Message.failed(['control', 'device', d_id], {
+            causer: ['find', 'device params']
+        }));
+
+        const controlBody: Record<string, any> = {};
+        for (const { dcp_tag, dcp_required } of deviceParams) {
+            if (!dcp_required) continue;
+            if (!req.body[dcp_tag]) throw new Error(Message.failed(['control', 'device', d_id], {
+                subMessage: `Parameter ${dcp_tag} is required`
+            }));
+
+            controlBody[dcp_tag] = req.body[dcp_tag];
+        }
+
+        // MQTT LOGIC
+        const { d_did } = device;
+        const topic = `pacer/${d_did}/control`;
+        const uuid = nanoid(16);
+        const message = stringifyJson({ ...controlBody, req_uuid: uuid });
+        const publish = await mqttClient.publish(topic, message, { uuid });
+        if (!publish) {
+            throw new Error(Message.failed(['control', 'device relays', { d_id }], {
+                subMessage: 'MQTT publish response in invalid'
+            }));
+        }
+
+        res.status(200).json(controlBody);
     });
 
     export const remove = Route.asyncHandler(async (req, res) => {

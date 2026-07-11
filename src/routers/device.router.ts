@@ -68,6 +68,8 @@ deviceRouter.route('/:d_id/params/control/:dcp_id')
     .delete(AC.deviceOwner(['admin', 'user']), DeviceControlParamHandler.remove);
 
 // Device control
+deviceRouter.route(':/d_id/control')
+    .post(AC.deviceOwner(['admin', 'user']), DeviceHandler.control);
 
 // Device data
 deviceRouter.route('/:d_id/data')
