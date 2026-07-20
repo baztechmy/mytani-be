@@ -1,5 +1,5 @@
 // CONFIGS
-import { db, createDeviceData, Device, DeviceDatas } from "../configs/db.config";
+import { db, Device, DeviceDatas } from "../configs/db.config";
 
 // HELPERS
 import Message from "../helpers/message.helper";
@@ -11,8 +11,8 @@ import Route from "@harrypoggers25/route";
 import { getPayload } from "../middlewares/authorization.middleware";
 
 // SERVICES
-import { createUserActivityLog } from "../services/user-activity-log.service";
 import { canMonitorHandler } from "../services/mqtt.service";
+import { createUserActivityLog } from "../services/user-activity-log.service";
 
 export namespace DeviceDataHandler {
     export const createByDevice = Route.asyncHandler(async (req, res) => {
@@ -58,7 +58,7 @@ export namespace DeviceDataHandler {
         }
 
         const DeviceData = DeviceDatas[d_id];
-        const deviceData = DeviceData.find({ orderBy: { dd_date: 'ASC' } });
+        const deviceData = await DeviceData.find({ orderBy: { dd_date: 'ASC' } });
         if (!deviceData) throw new Error(Message.failed(['find', 'device data', { d_id }]));
 
         res.status(200).json(deviceData);
