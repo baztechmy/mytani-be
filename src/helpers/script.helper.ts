@@ -33,6 +33,8 @@ namespace Script {
                 causer: ['create', 'user secret'],
             }));
         }
+
+        return { company, users };
     }
 }
 export default Script;
