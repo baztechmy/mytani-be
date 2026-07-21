@@ -1,10 +1,10 @@
 // CONTROLLERS
-import { DeviceHandler } from '../controllers/device.controller';
-import { DeviceRelayHandler } from '../controllers/device-relay.controller';
-import { DeviceRelayScheduleHandler } from '../controllers/device-relay-schedule.controller';
-import { DeviceMonitorParamHandler } from '../controllers/device-monitor-param.controller';
 import { DeviceControlParamHandler } from '../controllers/device-control-param.controller';
 import { DeviceDataHandler } from '../controllers/device-data.controller';
+import { DeviceMonitorParamHandler } from '../controllers/device-monitor-param.controller';
+import { DeviceRelayScheduleHandler } from '../controllers/device-relay-schedule.controller';
+import { DeviceRelayHandler } from '../controllers/device-relay.controller';
+import { DeviceHandler } from '../controllers/device.controller';
 
 // MIDDLEWARES
 import AC from '../middlewares/access-control.middleware';
@@ -68,7 +68,7 @@ deviceRouter.route('/:d_id/params/control/:dcp_id')
     .delete(AC.deviceOwner(['admin', 'user']), DeviceControlParamHandler.remove);
 
 // Device control
-deviceRouter.route(':/d_id/control')
+deviceRouter.route('/:d_id/control')
     .post(AC.deviceOwner(['admin', 'user']), DeviceHandler.control);
 
 // Device data
