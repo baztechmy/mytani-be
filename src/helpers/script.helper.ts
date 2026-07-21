@@ -1,6 +1,6 @@
 // CONFIGS
 import env from '../configs/env.config';
-import { Company, User, UserSecret } from '../configs/db.config';
+import { Company, Device, Site, User, UserSecret } from '../configs/db.config';
 
 // MODULES
 import ch from '@harrypoggers25/color-utils';
@@ -35,6 +35,27 @@ namespace Script {
         }
 
         return { company, users };
+    }
+    export async function createDevices(date: Date, transaction: any) {
+        const site_name = "Test site";
+        const [updated_at, created_at] = [date, date];
+        const site = await Site.create(
+            { site_name, site_location: "Nowhere", comp_id: 1, updated_at, created_at },
+            { transaction }
+        );
+        if (!site) return console.log(ch.red('CREATE SITE ERROR:'), Message.failed(['create', 'site', { site_name }]));
+
+        const { site_id, comp_id } = site;
+        for (const { d_did, d_name, has_relay } of [
+            { d_did: "ccba97082958", d_name: "kincony-t16m", has_relay: true },
+            { d_did: "esp32-EABF8C", d_name: "kincony-a2-v3" },
+        ]) {
+            const device = await Device.create(
+                { d_did, d_name, comp_id, has_relay, site_id },
+                { transaction }
+            );
+            if (!device) return console.log(ch.red('CREATE DEVICE ERROR:'), Message.failed(['create', 'device', { d_did }]));
+        }
     }
 }
 export default Script;
