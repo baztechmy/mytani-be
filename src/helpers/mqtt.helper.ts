@@ -273,8 +273,8 @@ namespace Mqtt {
         }
     }
 
-    export function define(config: MqttClientConfig): MqttClient {
-        return new MqttClient(config);
+    export function define(config: MqttClientConfig, options: MqttClientOptions): MqttClient {
+        return new MqttClient(config, options);
     }
 }
 

@@ -7,5 +7,5 @@ export const mqttClient = Mqtt.define({
     password: env.MQTT_PASSWORD,
     port: env.MQTT_PORT,
     protocol: 'mqtt',
-});
+}, { timeout_ms: 10000 });
 
