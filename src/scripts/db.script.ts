@@ -1,7 +1,7 @@
 // CONFIGS
-import ch from '@harrypoggers25/color-utils';
-import { db } from "../configs/db.config";
+import ch from "@harrypoggers25/color-utils";
 import Script from "../helpers/script.helper";
+import { db } from "../configs/db.config";
 
 db.sync({
     alter: true,
