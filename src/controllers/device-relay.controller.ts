@@ -193,7 +193,6 @@ export namespace DeviceRelayHandler {
         const { d_did } = device;
         const topic = d_did === temp ? `pacer/${d_did}/control` : `pacer/${d_did}/control/relays`;
         const uuid = d_did === temp ? '' : nanoid(16);
-        // const uuid = nanoid(16);
         const message = stringifyJson({ outputs: current_states, req_uuid: uuid });
         const publish = await mqttClient.publish(topic, message, { uuid });
         if (!publish) {
