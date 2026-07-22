@@ -1,17 +1,19 @@
 // CONFIGS
 import { db, User, UserSecret } from "../configs/db.config";
 
+// HELPERS
+import Message from "../helpers/message.helper";
+
 // MODULES
 import Route from "@harrypoggers25/route";
 import { hashSync } from "bcrypt-ts";
 
 // MIDDLEWARES
 import { getPayload } from "../middlewares/authorization.middleware";
+import { Roles } from "../middlewares/access-control.middleware";
 
 // SERVICES
 import { createUserActivityLog } from "../services/user-activity-log.service";
-import { Roles } from "../middlewares/access-control.middleware";
-import Message from "../helpers/message.helper";
 
 export namespace UserHandler {
     export const createByCompany = Route.asyncHandler(async (req, res) => {

@@ -1,6 +1,9 @@
 // CONFIGS
 import { db, Site } from "../configs/db.config";
 
+// HELPERS
+import Message from "../helpers/message.helper";
+
 // MODULES
 import Route from "@harrypoggers25/route";
 
@@ -9,7 +12,6 @@ import { getPayload } from "../middlewares/authorization.middleware";
 
 // SERVICES
 import { createUserActivityLog } from "../services/user-activity-log.service";
-import Message from "../helpers/message.helper";
 
 export namespace SiteHandler {
     export const createByCompany = Route.asyncHandler(async (req, res) => {

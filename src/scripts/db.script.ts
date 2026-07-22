@@ -10,5 +10,7 @@ db.sync({
 
         const date = new Date();
         await Script.createUsers(date, transaction);
+
+        console.log(ch.green('CREATE SCRIPT:'), `Altered db. New data has been`, ch.green('updated'));
     }
 })

@@ -2,17 +2,17 @@
 import { User, UserSecret } from "../configs/db.config";
 import env from "../configs/env.config";
 
+// HELPERS
+import Token from "../helpers/token.helper";
+import Message from "../helpers/message.helper";
+
 // MIDDLEWARES
 import { Payload } from "../middlewares/authorization.middleware";
 
 // MODULES
 import Route from "@harrypoggers25/route";
-import ms from 'ms';
+import ms from "ms";
 import { compareSync } from "bcrypt-ts";
-
-// HELPERS
-import Token from "../helpers/token.helper";
-import Message from "../helpers/message.helper";
 
 export namespace AuthenticationHandler {
     export const loginUser = Route.asyncHandler(async (req, res) => {

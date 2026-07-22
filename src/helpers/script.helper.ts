@@ -40,7 +40,7 @@ namespace Script {
         const site_name = "Test site";
         const [updated_at, created_at] = [date, date];
         const site = await Site.create(
-            { site_name, site_location: "Nowhere", comp_id: 1, updated_at, created_at },
+            { site_name, site_location: "No where", comp_id: 1, updated_at, created_at },
             { transaction }
         );
         if (!site) return console.log(ch.red('CREATE SITE ERROR:'), Message.failed(['create', 'site', { site_name }]));
