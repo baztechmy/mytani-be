@@ -7,7 +7,7 @@ import Route from '@harrypoggers25/route';
 
 // HELPERS
 import Token from '../helpers/token.helper';
-import Message from '../helpers/message.helper';
+import Message from "@harrypoggers25/message";
 
 export type Payload = { user_id: number, user_email: string, user_name: string, user_role: string, comp_id: number, login_id: number };
 export function getPayload(req: Route.ERequest) {

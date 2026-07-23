@@ -4,7 +4,7 @@ import { mqttClient } from "../configs/mqtt.config";
 
 // HELPERS
 import { parseJson } from "../helpers/json.helper";
-import Message from "../helpers/message.helper";
+import Message from "@harrypoggers25/message";
 
 export const onConnectHandler = async () => {
     const devices = await Device.find();

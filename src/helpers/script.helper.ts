@@ -7,7 +7,7 @@ import ch from '@harrypoggers25/color-utils';
 import { hashSync } from 'bcrypt-ts';
 
 // HELPERS
-import Message from './message.helper';
+import Message from "@harrypoggers25/message";
 
 namespace Script {
     export async function createUsers(date: Date, transaction: any) {

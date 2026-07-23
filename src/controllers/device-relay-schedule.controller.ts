@@ -2,7 +2,7 @@
 import { db, Device, DeviceRelaySchedule } from "../configs/db.config";
 
 // HELPERS
-import Message from "../helpers/message.helper";
+import Message from "@harrypoggers25/message";
 import { isArrayObj, stringifyJson } from "../helpers/json.helper";
 
 // MODULES

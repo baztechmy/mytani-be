@@ -2,7 +2,7 @@
 import { db, Device, DeviceDatas } from "../configs/db.config";
 
 // HELPERS
-import Message from "../helpers/message.helper";
+import Message from "@harrypoggers25/message";
 
 // MODULES
 import Route from "@harrypoggers25/route";

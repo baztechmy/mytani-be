@@ -4,7 +4,7 @@ import env from "../configs/env.config";
 
 // HELPERS
 import Token from "../helpers/token.helper";
-import Message from "../helpers/message.helper";
+import Message from "@harrypoggers25/message";
 
 // MIDDLEWARES
 import { Payload } from "../middlewares/authorization.middleware";

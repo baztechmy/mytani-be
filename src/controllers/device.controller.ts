@@ -3,7 +3,7 @@ import { db, Device, DeviceControlParam, Site } from "../configs/db.config";
 import { mqttClient } from "../configs/mqtt.config";
 
 // HELPERS
-import Message from "../helpers/message.helper";
+import Message from "@harrypoggers25/message";
 import { stringifyJson } from "../helpers/json.helper";
 
 // MODULES
