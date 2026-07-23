@@ -1,4 +1,4 @@
-import Mqtt from "../helpers/mqtt.helper";
+import Mqtt from "@harrypoggers25/mqtt";
 import env from "./env.config";
 
 export const mqttClient = Mqtt.define({
